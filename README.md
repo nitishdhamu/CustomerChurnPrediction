@@ -69,7 +69,14 @@ Next, run the machine learning pipeline. This will process the data, train the m
 python src/churn_prediction.py
 ```
 
-### 5. View the Results
+### 5. Predict Real-World Cancellations (Inference)
+Now that the AI is trained, you can run the inference script. This script simulates taking a brand new list of 100 *currently active* customers and feeds them through the trained Artificial Intelligence.
+```bash
+python src/predict_active_customers.py
+```
+This will output a spreadsheet located at `results/at_risk_customers_list.csv` containing the exact User IDs of the people most likely to cancel their subscriptions!
+
+### 6. View the Full Results
 Once the script finishes, a `results/` folder will appear! Open it to find:
 - `model_comparison.csv`: A spreadsheet summarizing Accuracy, Precision, Recall, F1-Score, and ROC-AUC.
 - `feature_importance.png`: A chart showing the top reasons users cancel (e.g., turning off auto-renew).
