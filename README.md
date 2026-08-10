@@ -109,4 +109,4 @@ Customer_Churn_Prediction/
 ```
 
 ---
-*Created as part of an ML Internship Project.*
+*Created as part of a Data Science Internship Project.*
