@@ -12,7 +12,7 @@ def main():
         return
         
     active_customers_df = pd.read_csv(data_path)
-    print(f"[*] Loaded {len(active_customers_df)} active subscribers.")
+    print(f"[*] Loaded {len(active_customers_df):,} active subscribers.")
     
     # 1. Load the saved "Brains" from our training phase
     print("[*] Loading trained Neural Network model, scaler, and feature columns...")
@@ -48,31 +48,44 @@ def main():
     
     # Add probabilities back to our readable dataframe
     active_customers_df['churn_probability'] = probabilities.round(4)
-    active_customers_df['churn_risk'] = active_customers_df['churn_probability'].apply(
-        lambda p: 'High Risk' if p >= 0.75 else ('Risk' if p >= 0.4 else 'Low Risk')
-    )
     
-    # 4. Sort all customers by probability and save the complete list
-    all_customers_sorted = active_customers_df.sort_values(by='churn_probability', ascending=False)
+    # Assign risk categories based on requested thresholds
+    def assign_risk(p):
+        if p > 0.75:
+            return 'High Risk'
+        elif p > 0.40:
+            return 'Medium Risk'
+        else:
+            return 'Low Risk'
+            
+    active_customers_df['churn_risk'] = active_customers_df['churn_probability'].apply(assign_risk)
     
+    # 4. Split into three separate dataframes
+    high_risk_df = active_customers_df[active_customers_df['churn_risk'] == 'High Risk'].sort_values(by='churn_probability', ascending=False)
+    medium_risk_df = active_customers_df[active_customers_df['churn_risk'] == 'Medium Risk'].sort_values(by='churn_probability', ascending=False)
+    low_risk_df = active_customers_df[active_customers_df['churn_risk'] == 'Low Risk'].sort_values(by='churn_probability', ascending=False)
+    
+    # 5. Save the three separate CSV files
     os.makedirs("results", exist_ok=True)
-    output_path = "results/all_customers_churn_predictions.csv"
-    all_customers_sorted.to_csv(output_path, index=False)
     
-    # Count how many are in each category
-    risk_counts = all_customers_sorted['churn_risk'].value_counts()
+    high_risk_path = "results/high_risk_customers.csv"
+    medium_risk_path = "results/medium_risk_customers.csv"
+    low_risk_path = "results/low_risk_customers.csv"
+    
+    high_risk_df.to_csv(high_risk_path, index=False)
+    medium_risk_df.to_csv(medium_risk_path, index=False)
+    low_risk_df.to_csv(low_risk_path, index=False)
+    
+    # If the old single file exists, remove it to avoid confusion
+    if os.path.exists("results/at_risk_customers_list.csv"):
+        os.remove("results/at_risk_customers_list.csv")
     
     print("\n" + "="*50)
-    print(f"[+] Prediction Complete for all {len(active_customers_df):,} customers.")
-    print(f"    - High Risk (>= 75%): {risk_counts.get('High Risk', 0):,}")
-    print(f"    - Risk (40% - 74%):   {risk_counts.get('Risk', 0):,}")
-    print(f"    - Low Risk (< 40%):   {risk_counts.get('Low Risk', 0):,}")
-    print(f"[+] The full list has been saved to: {output_path}")
+    print(f"[+] Prediction Complete! Analyzed {len(active_customers_df):,} total customers.")
+    print(f"    - High Risk (76-100%): {len(high_risk_df):,} users saved to {high_risk_path}")
+    print(f"    - Medium Risk (41-75%): {len(medium_risk_df):,} users saved to {medium_risk_path}")
+    print(f"    - Low Risk (0-40%): {len(low_risk_df):,} users saved to {low_risk_path}")
     print("="*50)
     
-    # Preview top 5 High Risk and top 5 Low Risk
-    print("\nTop 5 MOST At-Risk Customers:")
-    print(all_customers_sorted[['customer_id', 'churn_probability', 'churn_risk', 'auto_renew_enabled', 'monthly_active_days']].head(5).to_string(index=False))
-
 if __name__ == "__main__":
     main()
