@@ -3,10 +3,8 @@ __pycache__/
 *.pyc
 .ipynb_checkpoints/
 
-# Data and results
-data/
+# Results
 results/
-*.csv
 *.png
 
 # Models
