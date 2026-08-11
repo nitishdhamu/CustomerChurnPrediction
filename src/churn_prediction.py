@@ -1,9 +1,7 @@
 import pandas as pd
 import numpy as np
 import os
-import matplotlib.pyplot as plt
-import seaborn as sns
-import joblib  # NEW: For saving the trained model and scaler
+import joblib
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -11,21 +9,21 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
-from sklearn.metrics import confusion_matrix, roc_curve
 
 from imblearn.over_sampling import SMOTE
 
 def load_and_preprocess_data(filepath):
+    """
+    Loads the historical dataset, encodes categorical features, and scales numerical features.
+    """
     print(f"[*] Loading data from {filepath}...")
     df = pd.read_csv(filepath)
-    
     df = df.drop('customer_id', axis=1)
     
     print("[*] Encoding categorical features...")
     categorical_cols = ['subscription_tier', 'device_type', 'auto_renew_enabled']
     df = pd.get_dummies(df, columns=categorical_cols, drop_first=True)
     
-    # Save the exact columns used during training so we can match them during prediction
     feature_columns = df.drop('churn', axis=1).columns
     os.makedirs("models", exist_ok=True)
     joblib.dump(feature_columns, "models/feature_columns.pkl")
@@ -46,12 +44,14 @@ def load_and_preprocess_data(filepath):
     X_train_scaled[num_cols] = scaler.fit_transform(X_train[num_cols])
     X_test_scaled[num_cols] = scaler.transform(X_test[num_cols])
     
-    # NEW: Save the fitted scaler so we can scale new, active customers the exact same way
     joblib.dump(scaler, "models/scaler.pkl")
     
     return X_train_scaled, X_test_scaled, y_train, y_test, feature_columns
 
 def evaluate_model(model, X_test, y_test, model_name):
+    """
+    Predicts the test set using the trained model and calculates performance metrics.
+    """
     y_pred = model.predict(X_test)
     y_prob = model.predict_proba(X_test)[:, 1] if hasattr(model, 'predict_proba') else [0]*len(y_test)
     
@@ -71,48 +71,24 @@ def evaluate_model(model, X_test, y_test, model_name):
             
     return metrics, y_pred, y_prob
 
-def plot_confusion_matrix(y_true, y_pred, title, filename):
-    cm = confusion_matrix(y_true, y_pred)
-    plt.figure(figsize=(6, 4))
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', cbar=False)
-    plt.title(f'Confusion Matrix: {title}')
-    plt.ylabel('Actual Label')
-    plt.xlabel('Predicted Label')
-    plt.tight_layout()
-    plt.savefig(filename)
-    plt.close()
-
-def plot_roc_curves(models_probs, y_test, filename):
-    plt.figure(figsize=(8, 6))
-    for model_name, y_prob in models_probs.items():
-        if y_prob is not None:
-            fpr, tpr, _ = roc_curve(y_test, y_prob)
-            auc = roc_auc_score(y_test, y_prob)
-            plt.plot(fpr, tpr, label=f"{model_name} (AUC = {auc:.3f})")
-            
-    plt.plot([0, 1], [0, 1], 'k--')
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.title('ROC Curves (Streaming Churn)')
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig(filename)
-    plt.close()
-
 def main():
     os.makedirs("results", exist_ok=True)
     os.makedirs("models", exist_ok=True)
     
-    data_path = os.path.join("data", "streaming_churn_data.csv")
+    data_path = os.path.join("data", "historical_data_fy25.csv")
     if not os.path.exists(data_path):
         print(f"[!] Error: Data file not found at {data_path}. Please run generate_data.py first.")
         return
         
     X_train, X_test, y_train, y_test, feature_names = load_and_preprocess_data(data_path)
     
+    print(f"\n[*] Original training set class distribution: 0: {sum(y_train==0)}, 1: {sum(y_train==1)}")
+    
     print("[*] Applying SMOTE to balance the training data...")
     smote = SMOTE(random_state=42)
     X_train_smote, y_train_smote = smote.fit_resample(X_train, y_train)
+    
+    print(f"[*] SMOTE training set class distribution: 0: {sum(y_train_smote==0)}, 1: {sum(y_train_smote==1)}")
     
     models = {
         "Logistic Regression": LogisticRegression(random_state=42, max_iter=1000),
@@ -121,7 +97,6 @@ def main():
     }
     
     results = []
-    models_probs = {}
     
     print("\n[*] Training models on SMOTE balanced data...")
     for name, model in models.items():
@@ -129,34 +104,25 @@ def main():
         
         metrics, y_pred, y_prob = evaluate_model(model, X_test, y_test, name)
         results.append(metrics)
-        models_probs[name] = y_prob
         
-        plot_confusion_matrix(y_test, y_pred, name, f"results/cm_{name.replace(' ', '_').lower()}.png")
-        
-        # NEW: Save the Neural Network model as our final production model
         if name == "Neural Network":
             joblib.dump(model, "models/best_model_nn.pkl")
             print("[*] Saved Neural Network model to models/best_model_nn.pkl")
             
-    print("\n[*] Generating ROC curves...")
-    plot_roc_curves(models_probs, y_test, "results/roc_curves.png")
-    
     results_df = pd.DataFrame(results)
+    print("\n==== Summary of Results ====")
+    print(results_df.to_string(index=False))
     results_df.to_csv("results/model_comparison.csv", index=False)
     
+    # Save Feature Importance to CSV instead of an image
+    print("\n[*] Extracting feature importance...")
     dt_model = models["Decision Tree"]
     importances = dt_model.feature_importances_
     feat_imp = pd.DataFrame({'Feature': feature_names, 'Importance': importances})
     feat_imp = feat_imp.sort_values(by='Importance', ascending=False)
+    feat_imp.to_csv("results/feature_importance.csv", index=False)
     
-    plt.figure(figsize=(10, 6))
-    sns.barplot(x='Importance', y='Feature', data=feat_imp, hue='Feature', legend=False, palette='viridis')
-    plt.title('Feature Importance (Streaming Subscriptions)')
-    plt.tight_layout()
-    plt.savefig("results/feature_importance.png")
-    plt.close()
-    
-    print("\n[+] Training Pipeline completed successfully!")
+    print("\n[+] Training Pipeline completed successfully! Check the 'results/' folder for CSV summaries.")
 
 if __name__ == "__main__":
     main()
