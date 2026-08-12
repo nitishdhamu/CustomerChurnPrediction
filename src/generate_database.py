@@ -16,11 +16,14 @@ def generate_names_and_emails(num_samples):
     
     words1 = np.random.choice(random_words, num_samples)
     words2 = np.random.choice(random_words, num_samples)
-    random_nums = np.random.randint(100, 9999, num_samples).astype(str)
+    
+    # Generate a unique ID array to guarantee no email collisions
+    unique_ids = np.arange(1, num_samples + 1).astype(str)
+    
     email_domains = np.random.choice(domains, num_samples)
     
     emails = np.char.add(words1, words2)
-    emails = np.char.add(emails, random_nums)
+    emails = np.char.add(emails, unique_ids)
     emails = np.char.add(np.char.add(emails, '@'), email_domains)
     
     return names, emails
@@ -111,3 +114,4 @@ def generate_million_user_database():
 
 if __name__ == "__main__":
     generate_million_user_database()
+
