@@ -10,3 +10,6 @@ results/
 # Models
 models/
 *.pkl
+
+# Massive Data files
+data/
