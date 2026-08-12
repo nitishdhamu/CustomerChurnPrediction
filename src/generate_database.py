@@ -2,10 +2,16 @@ import pandas as pd
 import numpy as np
 import os
 
+import json
+
 def generate_names_and_emails(num_samples):
-    """Generates realistic fake names and completely randomized emails."""
-    first_names = ['James', 'Mary', 'John', 'Patricia', 'Robert', 'Jennifer', 'Michael', 'Linda', 'William', 'Elizabeth', 'David', 'Barbara', 'Richard', 'Susan', 'Joseph', 'Jessica', 'Thomas', 'Sarah', 'Charles', 'Karen', 'Alex', 'Sam', 'Taylor', 'Jordan', 'Casey', 'Christopher', 'Nancy', 'Daniel', 'Lisa', 'Paul', 'Betty', 'Mark', 'Margaret', 'Donald', 'Sandra', 'George', 'Ashley', 'Kenneth', 'Kimberly', 'Steven', 'Emily', 'Edward', 'Donna', 'Brian', 'Michelle', 'Ronald', 'Carol', 'Anthony', 'Amanda', 'Kevin', 'Melissa', 'Jason', 'Deborah', 'Matthew', 'Stephanie', 'Gary', 'Rebecca', 'Timothy', 'Sharon', 'Jose', 'Laura', 'Larry', 'Cynthia', 'Jeffrey', 'Kathleen', 'Frank', 'Amy', 'Scott', 'Shirley', 'Eric', 'Angela', 'Stephen', 'Helen', 'Andrew', 'Anna', 'Raymond', 'Brenda', 'Gregory', 'Pamela', 'Joshua', 'Nicole', 'Jerry', 'Emma', 'Dennis', 'Samantha', 'Walter', 'Katherine', 'Patrick', 'Christine', 'Peter', 'Debra', 'Harold', 'Rachel', 'Douglas', 'Catherine', 'Henry', 'Carolyn', 'Carl', 'Janet', 'Arthur', 'Ruth']
-    last_names = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez', 'Gonzales', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin', 'Lee', 'Perez', 'Thompson', 'White', 'Harris', 'Sanchez', 'Clark', 'Ramirez', 'Lewis', 'Robinson', 'Walker', 'Young', 'Allen', 'King', 'Wright', 'Scott', 'Torres', 'Nguyen', 'Hill', 'Flores', 'Green', 'Adams', 'Nelson', 'Baker', 'Hall', 'Rivera', 'Campbell', 'Mitchell', 'Carter', 'Roberts', 'Gomez', 'Phillips', 'Evans', 'Turner', 'Diaz', 'Parker', 'Cruz', 'Edwards', 'Collins', 'Reyes', 'Stewart', 'Morris', 'Morales', 'Murphy', 'Cook', 'Rogers', 'Gutierrez', 'Ortiz', 'Morgan', 'Cooper', 'Peterson', 'Bailey', 'Reed', 'Kelly', 'Howard', 'Ramos', 'Kim', 'Cox', 'Ward', 'Richardson', 'Watson', 'Brooks', 'Chavez', 'Wood', 'James', 'Bennett', 'Gray', 'Mendoza', 'Ruiz', 'Hughes', 'Price', 'Alvarez', 'Castillo', 'Sanders', 'Patel', 'Myers', 'Long', 'Ross', 'Foster', 'Jimenez']
+    """Generates realistic fake names and completely randomized emails from an international pool."""
+    with open('data/international_names.json', 'r', encoding='utf-8') as f:
+        name_data = json.load(f)
+        
+    first_names = name_data['first_names']
+    last_names = name_data['last_names']
+    
     domains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'icloud.com']
     
     random_words = ['skater', 'gamer', 'star', 'blue', 'red', 'ninja', 'shadow', 'cool', 'super', 'music', 'coder', 'hero', 'pizza', 'sunny', 'moon', 'coffee', 'tech', 'happy', 'swift', 'magic']
