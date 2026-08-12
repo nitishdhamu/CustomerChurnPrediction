@@ -30,6 +30,7 @@ def main():
     
     # One-Hot Encoding
     categorical_cols = ['subscription_tier', 'device_type', 'auto_renew_enabled']
+    categorical_cols = ['subscription_tier', 'device_type', 'auto_renew_enabled', 'favorite_genre', 'support_sentiment']
     process_df = pd.get_dummies(process_df, columns=categorical_cols, drop_first=True)
     
     # Ensure columns match exactly (add missing columns as 0, order them correctly)
