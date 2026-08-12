@@ -30,7 +30,7 @@ def main():
     
     # One-Hot Encoding
     categorical_cols = ['subscription_tier', 'device_type', 'auto_renew_enabled']
-    categorical_cols = ['subscription_tier', 'device_type', 'auto_renew_enabled', 'favorite_genre', 'support_sentiment']
+    categorical_cols = ['income_bracket', 'subscription_tier', 'billing_cycle', 'auto_renew_enabled', 'customer_acquisition_channel', 'primary_device']
     process_df = pd.get_dummies(process_df, columns=categorical_cols, drop_first=True)
     
     # Ensure columns match exactly (add missing columns as 0, order them correctly)
@@ -41,6 +41,7 @@ def main():
     
     # Scale numerical features using the SAVED scaler
     num_cols = ['tenure_months', 'monthly_active_days', 'avg_watch_time_hours', 'payment_failures', 'support_tickets']
+    num_cols = ['user_age', 'household_size', 'tenure_months', 'days_since_last_login', 'avg_watch_time_hours', 'content_completion_rate', 'payment_failures', 'support_tickets', 'support_resolution_time_days']
     process_df[num_cols] = scaler.transform(process_df[num_cols])
     
     # 3. Predict!
