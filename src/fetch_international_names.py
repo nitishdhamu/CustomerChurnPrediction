@@ -12,12 +12,10 @@ def generate_diverse_name_pools():
     first_names = set()
     last_names = set()
     
-    # Generate until we have 2000 of each
-    while len(first_names) < 2000 or len(last_names) < 2000:
-        if len(first_names) < 2000:
-            first_names.add(fake.first_name())
-        if len(last_names) < 2000:
-            last_names.add(fake.last_name())
+    # Generate 10000 times and rely on sets to deduplicate (prevents infinite loops if pool < 2000)
+    for _ in range(10000):
+        first_names.add(fake.first_name())
+        last_names.add(fake.last_name())
             
     # Clean up any potential non-latin characters or weird formatting just in case
     # (Though we requested locales that usually provide localized names)
