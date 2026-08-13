@@ -2,15 +2,21 @@ import pandas as pd
 import numpy as np
 import os
 
-import json
+from faker import Faker
 
 def generate_names_and_emails(num_samples):
     """Generates realistic fake names and completely randomized emails from an international pool."""
-    with open('data/international_names.json', 'r', encoding='utf-8') as f:
-        name_data = json.load(f)
+    print("[*] Generating unique name pools in-memory (US & UK only)...")
+    fake = Faker(['en_US', 'en_GB'])
+    
+    first_names_set = set()
+    last_names_set = set()
+    for _ in range(5000):
+        first_names_set.add(fake.first_name())
+        last_names_set.add(fake.last_name())
         
-    first_names = name_data['first_names']
-    last_names = name_data['last_names']
+    first_names = list(first_names_set)
+    last_names = list(last_names_set)
     
     domains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'icloud.com']
     
