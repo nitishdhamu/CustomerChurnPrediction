@@ -5,8 +5,8 @@ from faker import Faker
 def generate_diverse_name_pools():
     print("[*] Generating diverse international name pools...")
     
-    # Locales for USA, India, China (Pinyin), Spain, France, Germany, Japan (Romaji), Arabic (Latin)
-    locales = ['en_US', 'hi_IN', 'zh_CN', 'es_ES', 'fr_FR', 'de_DE', 'ja_JP', 'ar_AE']
+    # Strictly traditional English names (US and UK only) as requested
+    locales = ['en_US', 'en_GB']
     fake = Faker(locales)
     
     first_names = set()
