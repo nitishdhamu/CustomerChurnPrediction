@@ -5,7 +5,7 @@ import os
 from faker import Faker
 
 def generate_names_and_emails(num_samples):
-    """Generates realistic fake names and completely randomized emails from an international pool."""
+    """Generates realistic fake names and completely randomized unique emails."""
     print("[*] Generating unique name pools in-memory (US & UK only)...")
     fake = Faker(['en_US', 'en_GB'])
     
@@ -28,11 +28,13 @@ def generate_names_and_emails(num_samples):
     
     words1 = np.random.choice(random_words, num_samples)
     words2 = np.random.choice(random_words, num_samples)
-    random_nums = np.random.randint(100, 9999, num_samples).astype(str)
+    
+    # Generate unique IDs to mathematically guarantee 0 email duplicates
+    unique_ids = np.arange(1, num_samples + 1).astype(str)
     email_domains = np.random.choice(domains, num_samples)
     
     emails = np.char.add(words1, words2)
-    emails = np.char.add(emails, random_nums)
+    emails = np.char.add(emails, unique_ids)
     emails = np.char.add(np.char.add(emails, '@'), email_domains)
     
     return names, emails
@@ -40,10 +42,12 @@ def generate_names_and_emails(num_samples):
 def generate_million_user_database():
     print("[*] Initializing Database Generation Engine...")
     
+    # 100% Reproducibility: Seed both NumPy and Faker at the very start
+    np.random.seed(42)
+    Faker.seed(42)
+    
     num_samples = np.random.randint(980000, 1050000)
     print(f"[*] Simulating {num_samples:,} users over the past 5 years...")
-    
-    np.random.seed(42)
     
     customer_id = [f"USER_{i:07d}" for i in range(1, num_samples + 1)]
     names, emails = generate_names_and_emails(num_samples)
