@@ -9,7 +9,6 @@ def predict_for_platform(filepath, model, scaler, feature_columns, platform_name
     print(f"\n[*] Preprocessing active customer data for {platform_name}...")
     df = pd.read_csv(filepath)
     
-    # BUSINESS LOGIC: We only predict churn for currently active users!
     active_customers = df[df['churn'] == 0].copy()
     print(f"[*] Found {len(active_customers):,} currently active subscribers in {platform_name}.")
     
@@ -38,16 +37,24 @@ def predict_for_platform(filepath, model, scaler, feature_columns, platform_name
     low_risk = active_customers[active_customers['churn_probability'] <= 0.40]
     
     os.makedirs("results", exist_ok=True)
-    high_risk.to_csv(f"results/{platform_name}_high_risk.csv", index=False)
-    medium_risk.to_csv(f"results/{platform_name}_medium_risk.csv", index=False)
-    low_risk.to_csv(f"results/{platform_name}_low_risk.csv", index=False)
+    high_risk.to_csv(f"results/{platform_name.lower()}_high_risk.csv", index=False)
+    medium_risk.to_csv(f"results/{platform_name.lower()}_medium_risk.csv", index=False)
+    low_risk.to_csv(f"results/{platform_name.lower()}_low_risk.csv", index=False)
     
-    print("="*50)
+    print("="*77)
     print(f"[+] Prediction Complete for {platform_name}!")
     print(f"    - High Risk (76-100%): {len(high_risk):,} users")
     print(f"    - Medium Risk (41-75%): {len(medium_risk):,} users")
     print(f"    - Low Risk (0-40%): {len(low_risk):,} users")
-    print("="*50)
+    print("-" * 77)
+    
+    print("Top 3 Highest Risk Customers (Marketing Target List):")
+    print(f"| {'Name':<25} | {'Email':<35} | {'Risk %':<8} |")
+    print("-" * 77)
+    for _, row in high_risk.head(3).iterrows():
+        risk_pct = f"{row['churn_probability']*100:.2f}%"
+        print(f"| {row['name']:<25} | {row['email']:<35} | {risk_pct:>8} |")
+    print("="*77)
 
 def main():
     parser = argparse.ArgumentParser(description="Predict Churn on streaming data")
@@ -65,9 +72,9 @@ def main():
     feature_columns = joblib.load("models/feature_columns.pkl")
     
     if not args.platforms:
-        files = glob.glob('data/*_users_database.csv')
+        files = glob.glob('data/*_users.csv')
     else:
-        files = [f"data/{p}_users_database.csv" for p in args.platforms]
+        files = [f"data/{p}_users.csv" for p in args.platforms]
         
     valid_files = [f for f in files if os.path.exists(f)]
     if not valid_files:
@@ -75,7 +82,7 @@ def main():
         return
 
     for f in valid_files:
-        platform_name = os.path.basename(f).replace('_users_database.csv', '')
+        platform_name = os.path.basename(f).replace('_users.csv', '')
         predict_for_platform(f, model, scaler, feature_columns, platform_name)
 
 if __name__ == "__main__":
