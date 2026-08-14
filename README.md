@@ -61,20 +61,20 @@ pip install -r requirements.txt
 ### 4. Generate the Master Database (If Required)
 If you do not have an existing dataset, use this script to generate a massive, authentic master database of over 1 Million users. It mathematically simulates human behavioral noise and completely unique Name/Email PII!
 ```bash
-python src/01_generate_data.py
+python src/generate_database.py
 ```
 *Note: Because this generates a highly detailed 1-Million-row dataset, the resulting CSV file will be over 100MB and is safely ignored by Git to prevent repository bloat.*
 
 ### 5. Run the Machine Learning Pipeline
-This script loads the `data/streaming_users.csv`, strips out PII (Names/Emails) so the AI doesn't learn useless patterns, and trains the Artificial Intelligence on users with mature tenure.
+This script loads the `data/streaming_users_database.csv`, strips out PII (Names/Emails) so the AI doesn't learn useless patterns, and trains the Artificial Intelligence on users with mature tenure.
 ```bash
-python src/02_train_models.py
+python src/churn_prediction.py
 ```
 
 ### 6. Predict Real-World Cancellations (Inference)
 Now that the AI is trained, run the inference script. It evaluates all currently active users in the database and re-attaches their Names and Emails for the Marketing Team to launch retention campaigns!
 ```bash
-python src/03_predict_churn.py
+python src/predict_active_customers.py
 ```
 This will output three separate spreadsheets in your `results/` folder so the marketing team can prioritize their efforts:
 - `high_risk_customers.csv` (76% - 100% chance of churning)
