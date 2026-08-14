@@ -1,11 +1,12 @@
 import pandas as pd
 import numpy as np
 import os
+import string
 
 from faker import Faker
 
-def generate_names_and_emails(num_samples):
-    """Generates realistic fake names and completely randomized emails from an international pool."""
+def generate_names_and_emails(num_samples, start_id=1):
+    """Generates realistic fake names and completely randomized unique emails."""
     print("[*] Generating unique name pools in-memory (US & UK only)...")
     fake = Faker(['en_US', 'en_GB'])
     
@@ -17,20 +18,24 @@ def generate_names_and_emails(num_samples):
         
     first_names = sorted(list(first_names_set))
     last_names = sorted(list(last_names_set))
+    middle_initials = [f" {c}. " for c in string.ascii_uppercase]
     
     domains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'icloud.com']
     
     random_words = ['skater', 'gamer', 'star', 'blue', 'red', 'ninja', 'shadow', 'cool', 'super', 'music', 'coder', 'hero', 'pizza', 'sunny', 'moon', 'coffee', 'tech', 'happy', 'swift', 'magic']
     
     f_names = np.random.choice(first_names, num_samples)
+    m_names = np.random.choice(middle_initials, num_samples)
     l_names = np.random.choice(last_names, num_samples)
-    names = np.char.add(np.char.add(f_names, ' '), l_names)
+    
+    # E.g. "James A. Smith"
+    names = np.char.add(np.char.add(f_names, m_names), l_names)
     
     words1 = np.random.choice(random_words, num_samples)
     words2 = np.random.choice(random_words, num_samples)
     
-    # Generate unique IDs to mathematically guarantee 0 email duplicates
-    unique_ids = np.arange(1, num_samples + 1).astype(str)
+    # Generate unique IDs to mathematically guarantee 0 email duplicates globally
+    unique_ids = np.arange(start_id, start_id + num_samples).astype(str)
     email_domains = np.random.choice(domains, num_samples)
     
     emails = np.char.add(words1, words2)
@@ -39,18 +44,18 @@ def generate_names_and_emails(num_samples):
     
     return names, emails
 
-def generate_million_user_database():
-    print("[*] Initializing Database Generation Engine...")
+def generate_streaming_database(platform_name, min_users, max_users, start_id, seed):
+    print(f"\n[*] Initializing Database Generation Engine for {platform_name}...")
     
-    # 100% Reproducibility: Seed both NumPy and Faker at the very start
-    np.random.seed(42)
-    Faker.seed(42)
+    # 100% Reproducibility per platform
+    np.random.seed(seed)
+    Faker.seed(seed)
     
-    num_samples = np.random.randint(1000000, 1050000)
-    print(f"[*] Simulating {num_samples:,} users over the past 5 years...")
+    num_samples = np.random.randint(min_users, max_users)
+    print(f"[*] Simulating {num_samples:,} users over the past 5 years for {platform_name}...")
     
-    customer_id = [f"USER_{i:07d}" for i in range(1, num_samples + 1)]
-    names, emails = generate_names_and_emails(num_samples)
+    customer_id = [f"{platform_name[:3].upper()}_{i:08d}" for i in range(1, num_samples + 1)]
+    names, emails = generate_names_and_emails(num_samples, start_id)
     
     tenure_months = np.random.randint(1, 61, size=num_samples)
     user_age = np.clip(np.random.normal(loc=35, scale=12, size=num_samples), 18, 80).astype(int)
@@ -120,11 +125,24 @@ def generate_million_user_database():
     df['churn'] = (churn_prob > threshold).astype(int)
     
     os.makedirs("data", exist_ok=True)
-    out_path = "data/streaming_users_database.csv"
+    out_path = f"data/{platform_name}_users_database.csv"
     print(f"[*] Saving massive database to {out_path}...")
     df.to_csv(out_path, index=False)
-    print(f"[+] Successfully generated {num_samples:,} users!")
+    print(f"[+] Successfully generated {num_samples:,} users for {platform_name}!")
+    
+    return num_samples
 
 if __name__ == "__main__":
-    generate_million_user_database()
-
+    platforms = [
+        ('Netflix', 2000000, 2200000),
+        ('Prime_Video', 1500000, 1600000),
+        ('Jio_Hotstar', 1200000, 1300000),
+        ('Apple_TV', 1000000, 1100000)
+    ]
+    
+    start_id = 1
+    seed_val = 42
+    for plat, min_u, max_u in platforms:
+        num_gen = generate_streaming_database(plat, min_u, max_u, start_id, seed_val)
+        start_id += num_gen
+        seed_val += 1

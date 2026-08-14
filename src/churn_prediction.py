@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import os
 import joblib
+import glob
+import argparse
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -13,22 +15,41 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-def load_and_preprocess_data(filepath):
+def load_and_preprocess_data(platforms):
     """
-    Loads the master database, filters for mature accounts (training data), 
-    drops PII, and encodes features.
+    Loads master databases, concatenates them, filters for mature accounts, 
+    drops PII, and encodes features. Samples rows to prevent memory overload.
     """
-    print(f"[*] Loading massive database from {filepath}...")
-    df = pd.read_csv(filepath)
+    if not platforms:
+        files = glob.glob('data/*_users_database.csv')
+    else:
+        files = [f"data/{p}_users_database.csv" for p in platforms]
+        
+    valid_files = [f for f in files if os.path.exists(f)]
+    if not valid_files:
+        print("[!] Error: No valid database files found for the requested platforms.")
+        print(f"    Looked for: {files}")
+        return None, None, None, None, None
+        
+    print(f"[*] Found {len(valid_files)} databases to learn from: {valid_files}")
     
-    print(f"[*] Total users in database: {len(df):,}")
+    dfs = []
+    for f in valid_files:
+        print(f"[*] Loading {f}...")
+        dfs.append(pd.read_csv(f))
+        
+    df = pd.concat(dfs, ignore_index=True)
+    print(f"[*] Total users across selected platforms: {len(df):,}")
     
     # BUSINESS LOGIC: We only train on users who have been around for more than 6 months 
-    # to ensure their behavior patterns are fully matured.
     train_df = df[df['tenure_months'] > 6].copy()
     print(f"[*] Filtered to {len(train_df):,} mature users (tenure > 6 months) for AI training.")
     
-    # DROP PII (Names, Emails, IDs) - AI does not need these!
+    if len(train_df) > 800000:
+        print("[*] Sampling 800,000 users for efficient model training...")
+        train_df = train_df.sample(n=800000, random_state=42)
+    
+    # DROP PII (Names, Emails, IDs)
     train_df = train_df.drop(['customer_id', 'name', 'email'], axis=1)
     
     print("[*] Encoding categorical features...")
@@ -59,58 +80,57 @@ def load_and_preprocess_data(filepath):
     
     return X_train_scaled, X_test_scaled, y_train, y_test, feature_columns
 
-def train_and_evaluate_models(X_train, X_test, y_train, y_test):
-    print(f"\n[*] Original training set class distribution: 0: {sum(y_train==0)}, 1: {sum(y_train==1)}")
-    
-    # NOTE: With 1 Million rows, we have hundreds of thousands of minority class samples. 
-    # SMOTE is an anti-pattern for Big Data as it causes memory explosions (O(N^2) KNN). 
-    # We will train directly on the massive dataset.
-
+def train_and_evaluate(X_train, X_test, y_train, y_test):
+    print("\n[*] Initializing Artificial Intelligence Models...")
     models = {
-        "Logistic Regression": LogisticRegression(max_iter=1000, class_weight='balanced', random_state=42),
-        "Decision Tree": DecisionTreeClassifier(max_depth=10, class_weight='balanced', random_state=42),
-        "Neural Network": MLPClassifier(hidden_layer_sizes=(64, 32), max_iter=50, random_state=42) # Reduced epochs for Big Data
+        'Logistic Regression': LogisticRegression(max_iter=1000, class_weight='balanced'),
+        'Decision Tree': DecisionTreeClassifier(max_depth=7, class_weight='balanced'),
+        'Neural Network': MLPClassifier(hidden_layer_sizes=(64, 32), max_iter=50, early_stopping=True)
     }
-
-    results = {}
-    print("\n[*] Training models on massive dataset...")
+    
+    results = []
+    
     for name, model in models.items():
+        print(f"    -> Training {name}...")
         model.fit(X_train, y_train)
-        y_pred = model.predict(X_test)
-        y_prob = model.predict_proba(X_test)[:, 1]
-
-        acc = accuracy_score(y_test, y_pred)
-        prec = precision_score(y_test, y_pred)
-        rec = recall_score(y_test, y_pred)
-        f1 = f1_score(y_test, y_pred)
-        roc_auc = roc_auc_score(y_test, y_prob)
-
-        results[name] = {'Accuracy': acc, 'Precision': prec, 'Recall': rec, 'F1-Score': f1, 'ROC-AUC': roc_auc}
+        preds = model.predict(X_test)
+        probs = model.predict_proba(X_test)[:, 1]
         
-        print(f"\n--- {name} Performance ---")
-        print(f"Accuracy: {acc:.4f}\nPrecision: {prec:.4f}\nRecall: {rec:.4f}\nF1-Score: {f1:.4f}\nROC-AUC: {roc_auc:.4f}")
-
-        if name == "Neural Network":
+        acc = accuracy_score(y_test, preds)
+        prec = precision_score(y_test, preds)
+        rec = recall_score(y_test, preds)
+        f1 = f1_score(y_test, preds)
+        auc = roc_auc_score(y_test, probs)
+        
+        results.append({
+            'Model': name,
+            'Accuracy': acc,
+            'Precision': prec,
+            'Recall': rec,
+            'F1-Score': f1,
+            'ROC-AUC': auc
+        })
+        
+        if name == 'Neural Network':
+            print(f"[*] Saving {name} as the production model...")
             joblib.dump(model, "models/best_model_nn.pkl")
-            print(f"[*] Saved Neural Network model to models/best_model_nn.pkl")
-
-    results_df = pd.DataFrame(results).T
-    print("\n==== Summary of Results ====")
-    print(results_df)
-    results_df.to_csv("results/model_comparison.csv")
+            
+    results_df = pd.DataFrame(results)
+    os.makedirs("results", exist_ok=True)
+    results_df.to_csv("results/model_comparison.csv", index=False)
+    print("\n[*] Training Complete! Results saved to results/model_comparison.csv")
+    print(results_df.to_string(index=False))
 
 def main():
+    parser = argparse.ArgumentParser(description="Train Churn Prediction Model on streaming data")
+    parser.add_argument('--platforms', nargs='*', help="Specify which platforms to train on (e.g., --platforms Netflix Prime_Video). Leave blank to train on all.")
+    args = parser.parse_args()
+
     os.makedirs("results", exist_ok=True)
-    os.makedirs("models", exist_ok=True)
     
-    data_path = os.path.join("data", "streaming_users_database.csv")
-    if not os.path.exists(data_path):
-        print(f"[!] Error: Data file not found at {data_path}. Please run src/generate_database.py first.")
-        return
-        
-    X_train, X_test, y_train, y_test, feature_names = load_and_preprocess_data(data_path)
-    train_and_evaluate_models(X_train, X_test, y_train, y_test)
-    print("\n[+] Training Pipeline completed successfully! Check the 'results/' folder for CSV summaries.")
+    X_train, X_test, y_train, y_test, feature_names = load_and_preprocess_data(args.platforms)
+    if X_train is not None:
+        train_and_evaluate(X_train, X_test, y_train, y_test)
 
 if __name__ == "__main__":
     main()
