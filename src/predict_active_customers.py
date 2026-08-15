@@ -5,11 +5,23 @@ import joblib
 import glob
 import argparse
 
-def predict_for_platform(filepath, model, scaler, feature_columns, platform_name):
+def predict_for_platform(filepath, platform_name):
     print(f"\n[*] Preprocessing active customer data for {platform_name}...")
+    
+    model_path = f"models/{platform_name}_best_model_nn.pkl"
+    scaler_path = f"models/{platform_name}_scaler.pkl"
+    feature_path = f"models/{platform_name}_feature_columns.pkl"
+    
+    if not (os.path.exists(model_path) and os.path.exists(scaler_path) and os.path.exists(feature_path)):
+        print(f"[!] Error: AI models for {platform_name} not found! Please run churn_prediction.py first.")
+        return
+        
+    model = joblib.load(model_path)
+    scaler = joblib.load(scaler_path)
+    feature_columns = joblib.load(feature_path)
+    
     df = pd.read_csv(filepath)
     
-    # BUSINESS LOGIC: We only predict churn for currently active users!
     active_customers = df[df['churn'] == 0].copy()
     print(f"[*] Found {len(active_customers):,} currently active subscribers in {platform_name}.")
     
@@ -42,27 +54,27 @@ def predict_for_platform(filepath, model, scaler, feature_columns, platform_name
     medium_risk.to_csv(f"results/{platform_name}_medium_risk.csv", index=False)
     low_risk.to_csv(f"results/{platform_name}_low_risk.csv", index=False)
     
-    print("="*50)
+    print("="*77)
     print(f"[+] Prediction Complete for {platform_name}!")
     print(f"    - High Risk (76-100%): {len(high_risk):,} users")
     print(f"    - Medium Risk (41-75%): {len(medium_risk):,} users")
     print(f"    - Low Risk (0-40%): {len(low_risk):,} users")
-    print("="*50)
+    print("-" * 77)
+    
+    print("Top 3 Highest Risk Customers (Marketing Target List):")
+    print(f"| {'Name':<25} | {'Email':<35} | {'Risk %':<8} |")
+    print("-" * 77)
+    for _, row in high_risk.head(3).iterrows():
+        risk_pct = f"{row['churn_probability']*100:.2f}%"
+        print(f"| {row['name']:<25} | {row['email']:<35} | {risk_pct:>8} |")
+    print("="*77)
 
 def main():
     parser = argparse.ArgumentParser(description="Predict Churn on streaming data")
     parser.add_argument('--platforms', nargs='*', help="Specify which platforms to predict (e.g., --platforms Netflix Prime_Video). Leave blank to predict on all.")
     args = parser.parse_args()
 
-    print("[*] Loading Master Database and AI Model...")
-    
-    if not os.path.exists("models/best_model_nn.pkl"):
-        print("[!] Error: Model not found. Run churn_prediction.py first!")
-        return
-        
-    model = joblib.load("models/best_model_nn.pkl")
-    scaler = joblib.load("models/scaler.pkl")
-    feature_columns = joblib.load("models/feature_columns.pkl")
+    print("[*] Starting batch AI inference engine...")
     
     if not args.platforms:
         files = glob.glob('data/*_users_database.csv')
@@ -76,7 +88,7 @@ def main():
 
     for f in valid_files:
         platform_name = os.path.basename(f).replace('_users_database.csv', '')
-        predict_for_platform(f, model, scaler, feature_columns, platform_name)
+        predict_for_platform(f, platform_name)
 
 if __name__ == "__main__":
     main()
