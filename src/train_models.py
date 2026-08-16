@@ -11,15 +11,46 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
-import matplotlib.pyplot as plt
-import seaborn as sns
 
+def get_platform_name(filename):
+    base = os.path.basename(filename)
+    for suffix in ['_dataset.csv', '_users.csv', '.csv']:
+        if base.endswith(suffix):
+            return base[:-len(suffix)]
+    return base
+
+def get_interactive_platforms():
+    files = glob.glob('data/*.csv')
+    if not files:
+        print("[!] No CSV datasets found in the data/ folder.")
+        return []
+    
+    platforms = [get_platform_name(f) for f in files]
+    platforms = sorted(list(set(platforms)))
+    
+    print("\n[*] Available Datasets:")
+    for i, p in enumerate(platforms, 1):
+        print(f"    {i}. {p}")
+    print(f"    {len(platforms) + 1}. All Platforms")
+    
+    choice = input("\n[?] Select datasets to train on (e.g., '1', '1,3', or 'All'): ").strip()
+    
+    if choice.lower() == 'all' or choice == str(len(platforms) + 1):
+        return platforms
+        
+    selected = []
+    for c in choice.split(','):
+        c = c.strip()
+        if c.isdigit():
+            idx = int(c) - 1
+            if 0 <= idx < len(platforms):
+                selected.append(platforms[idx])
+        elif c in platforms:
+            selected.append(c)
+            
+    return selected
 
 def load_and_preprocess_data(filepath, platform_name):
-    """
-    Loads a specific master database, filters for mature accounts, 
-    drops PII, and encodes features. Samples rows to prevent memory overload.
-    """
     print(f"\n[*] =========================================")
     print(f"[*] Processing data for platform: {platform_name}")
     print(f"[*] =========================================")
@@ -110,23 +141,30 @@ def train_and_evaluate(X_train, X_test, y_train, y_test, platform_name):
 
 def main():
     parser = argparse.ArgumentParser(description="Train Churn Prediction Model on streaming data")
-    parser.add_argument('--platforms', nargs='*', help="Specify which platforms to train on (e.g., --platforms Netflix Prime_Video). Leave blank to train on all independently.")
+    parser.add_argument('--platforms', nargs='*', help="Specify which platforms to train on.")
     args = parser.parse_args()
 
     os.makedirs("metrics", exist_ok=True)
     
-    if not args.platforms:
-        files = glob.glob('data/*_dataset.csv')
-    else:
-        files = [f"data/{p}_dataset.csv" for p in args.platforms]
-        
-    valid_files = [f for f in files if os.path.exists(f)]
+    platforms_to_run = args.platforms if args.platforms else get_interactive_platforms()
+    
+    if not platforms_to_run:
+        print("[!] No platforms selected. Exiting.")
+        return
+
+    # Find the actual files for the selected platforms
+    files = glob.glob('data/*.csv')
+    valid_files = []
+    for f in files:
+        if get_platform_name(f) in platforms_to_run:
+            valid_files.append(f)
+            
     if not valid_files:
         print("[!] Error: No valid database files found for the requested platforms.")
         return
 
     for filepath in valid_files:
-        platform_name = os.path.basename(filepath).replace('_dataset.csv', '')
+        platform_name = get_platform_name(filepath)
         X_train, X_test, y_train, y_test, _ = load_and_preprocess_data(filepath, platform_name)
         if X_train is not None:
             train_and_evaluate(X_train, X_test, y_train, y_test, platform_name)

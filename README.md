@@ -58,14 +58,13 @@ python src/generate_data.py
 *Note: The generated CSV files will be saved to `data/` and are automatically ignored by Git to prevent repository bloat.*
 
 ### 5. Run the Machine Learning Pipeline (Training)
-This script independently trains Neural Networks for each platform. 
-
-To train models for **all** platforms at once, simply run:
+This script trains independent Neural Networks for your datasets. Simply run the script to launch the **Interactive CLI Menu**, which will automatically scan your `data/` folder and let you choose which datasets to train on:
 ```bash
 python src/train_models.py
 ```
+*(You can select one, multiple comma-separated numbers, or type 'All')*
 
-**To train on specific platforms only**, use the `--platforms` flag followed by the names of the brands you want to target:
+**Automated Jobs**: If you want to bypass the menu, you can still use the `--platforms` flag:
 ```bash
 python src/train_models.py --platforms Netflix Prime_Video
 ```
@@ -75,17 +74,16 @@ When finished, the isolated models will be saved to the `models/` directory, and
 ### 6. Predict Real-World Cancellations (Inference)
 Now that the AI is trained, run the inference engine to target at-risk users! 
 
-Just like training, you can predict across all platforms, or target specific ones:
+Just like training, you can run the script to trigger the **Interactive Menu**:
 ```bash
-python src/predict_churn.py --platforms Netflix
+python src/predict_churn.py
 ```
 
 This evaluates all currently active users on that platform and outputs three separate spreadsheets in your `results/` folder so the marketing team can prioritize their efforts:
-- `Netflix_high_risk.csv` (76% - 100% chance of churning)
-- `Netflix_medium_risk.csv` (41% - 75% chance of churning)
-- `Netflix_low_risk.csv` (0% - 40% chance of churning)
-
-
+- `<Platform>_high_risk.csv` (76% - 100% chance of churning)
+- `<Platform>_medium_risk.csv` (41% - 75% chance of churning)
+- `<Platform>_low_risk.csv` (0% - 40% chance of churning)
 
 ---
 *Created as part of a Data Science Internship Project.*
+

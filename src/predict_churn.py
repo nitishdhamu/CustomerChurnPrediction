@@ -5,6 +5,44 @@ import joblib
 import glob
 import argparse
 
+def get_platform_name(filename):
+    base = os.path.basename(filename)
+    for suffix in ['_dataset.csv', '_users.csv', '.csv']:
+        if base.endswith(suffix):
+            return base[:-len(suffix)]
+    return base
+
+def get_interactive_platforms():
+    files = glob.glob('data/*.csv')
+    if not files:
+        print("[!] No CSV datasets found in the data/ folder.")
+        return []
+    
+    platforms = [get_platform_name(f) for f in files]
+    platforms = sorted(list(set(platforms)))
+    
+    print("\n[*] Available Datasets:")
+    for i, p in enumerate(platforms, 1):
+        print(f"    {i}. {p}")
+    print(f"    {len(platforms) + 1}. All Platforms")
+    
+    choice = input("\n[?] Select datasets to run inference on (e.g., '1', '1,3', or 'All'): ").strip()
+    
+    if choice.lower() == 'all' or choice == str(len(platforms) + 1):
+        return platforms
+        
+    selected = []
+    for c in choice.split(','):
+        c = c.strip()
+        if c.isdigit():
+            idx = int(c) - 1
+            if 0 <= idx < len(platforms):
+                selected.append(platforms[idx])
+        elif c in platforms:
+            selected.append(c)
+            
+    return selected
+
 def predict_for_platform(filepath, platform_name):
     print(f"\n[*] Preprocessing active customer data for {platform_name}...")
     
@@ -63,23 +101,29 @@ def predict_for_platform(filepath, platform_name):
 
 def main():
     parser = argparse.ArgumentParser(description="Predict Churn on streaming data")
-    parser.add_argument('--platforms', nargs='*', help="Specify which platforms to predict (e.g., --platforms Netflix Prime_Video). Leave blank to predict on all.")
+    parser.add_argument('--platforms', nargs='*', help="Specify which platforms to predict on.")
     args = parser.parse_args()
 
-    print("[*] Starting batch AI inference engine...")
+    print("[*] Starting AI inference engine...")
     
-    if not args.platforms:
-        files = glob.glob('data/*_dataset.csv')
-    else:
-        files = [f"data/{p}_dataset.csv" for p in args.platforms]
+    platforms_to_run = args.platforms if args.platforms else get_interactive_platforms()
+    
+    if not platforms_to_run:
+        print("[!] No platforms selected. Exiting.")
+        return
         
-    valid_files = [f for f in files if os.path.exists(f)]
+    files = glob.glob('data/*.csv')
+    valid_files = []
+    for f in files:
+        if get_platform_name(f) in platforms_to_run:
+            valid_files.append(f)
+            
     if not valid_files:
         print("[!] Error: No valid database files found for the requested platforms.")
         return
 
     for f in valid_files:
-        platform_name = os.path.basename(f).replace('_dataset.csv', '')
+        platform_name = get_platform_name(f)
         predict_for_platform(f, platform_name)
 
 if __name__ == "__main__":
