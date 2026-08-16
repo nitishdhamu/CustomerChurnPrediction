@@ -8,9 +8,9 @@ import argparse
 def predict_for_platform(filepath, platform_name):
     print(f"\n[*] Preprocessing active customer data for {platform_name}...")
     
-    model_path = f"models/{platform_name}_best_model_nn.pkl"
+    model_path = f"models/{platform_name}_model.pkl"
     scaler_path = f"models/{platform_name}_scaler.pkl"
-    feature_path = f"models/{platform_name}_feature_columns.pkl"
+    feature_path = f"models/{platform_name}_features.pkl"
     
     if not (os.path.exists(model_path) and os.path.exists(scaler_path) and os.path.exists(feature_path)):
         print(f"[!] Error: AI models for {platform_name} not found! Please run train_models.py first.")
@@ -77,9 +77,9 @@ def main():
     print("[*] Starting batch AI inference engine...")
     
     if not args.platforms:
-        files = glob.glob('data/*_users_database.csv')
+        files = glob.glob('data/*_dataset.csv')
     else:
-        files = [f"data/{p}_users_database.csv" for p in args.platforms]
+        files = [f"data/{p}_dataset.csv" for p in args.platforms]
         
     valid_files = [f for f in files if os.path.exists(f)]
     if not valid_files:
@@ -87,7 +87,7 @@ def main():
         return
 
     for f in valid_files:
-        platform_name = os.path.basename(f).replace('_users_database.csv', '')
+        platform_name = os.path.basename(f).replace('_dataset.csv', '')
         predict_for_platform(f, platform_name)
 
 if __name__ == "__main__":

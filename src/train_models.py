@@ -28,7 +28,6 @@ def load_and_preprocess_data(filepath, platform_name):
     df = pd.read_csv(filepath)
     print(f"[*] Total users for {platform_name}: {len(df):,}")
     
-    # BUSINESS LOGIC: We only train on users who have been around for more than 6 months 
     train_df = df[df['tenure_months'] > 6].copy()
     print(f"[*] Filtered to {len(train_df):,} mature users (tenure > 6 months) for AI training.")
     
@@ -36,7 +35,6 @@ def load_and_preprocess_data(filepath, platform_name):
         print("[*] Sampling 500,000 users for efficient model training...")
         train_df = train_df.sample(n=500000, random_state=42)
     
-    # DROP PII (Names, Emails, IDs)
     train_df = train_df.drop(['customer_id', 'name', 'email'], axis=1)
     
     print("[*] Encoding categorical features...")
@@ -45,7 +43,7 @@ def load_and_preprocess_data(filepath, platform_name):
     
     feature_columns = train_df.drop('churn', axis=1).columns
     os.makedirs("models", exist_ok=True)
-    joblib.dump(feature_columns, f"models/{platform_name}_feature_columns.pkl")
+    joblib.dump(feature_columns, f"models/{platform_name}_features.pkl")
     
     X = train_df.drop('churn', axis=1)
     y = train_df['churn']
@@ -100,11 +98,11 @@ def train_and_evaluate(X_train, X_test, y_train, y_test, platform_name):
         
         if name == 'Neural Network':
             print(f"[*] Saving {name} as the production model for {platform_name}...")
-            joblib.dump(model, f"models/{platform_name}_best_model_nn.pkl")
+            joblib.dump(model, f"models/{platform_name}_model.pkl")
             
     results_df = pd.DataFrame(results)
     os.makedirs("results", exist_ok=True)
-    out_csv = f"results/{platform_name}_model_comparison.csv"
+    out_csv = f"results/{platform_name}_metrics.csv"
     results_df.to_csv(out_csv, index=False)
     print(f"[*] Training Complete! Results saved to {out_csv}")
     print(results_df.to_string(index=False))
@@ -118,9 +116,9 @@ def main():
     os.makedirs("results", exist_ok=True)
     
     if not args.platforms:
-        files = glob.glob('data/*_users_database.csv')
+        files = glob.glob('data/*_dataset.csv')
     else:
-        files = [f"data/{p}_users_database.csv" for p in args.platforms]
+        files = [f"data/{p}_dataset.csv" for p in args.platforms]
         
     valid_files = [f for f in files if os.path.exists(f)]
     if not valid_files:
@@ -128,7 +126,7 @@ def main():
         return
 
     for filepath in valid_files:
-        platform_name = os.path.basename(filepath).replace('_users_database.csv', '')
+        platform_name = os.path.basename(filepath).replace('_dataset.csv', '')
         X_train, X_test, y_train, y_test, _ = load_and_preprocess_data(filepath, platform_name)
         if X_train is not None:
             train_and_evaluate(X_train, X_test, y_train, y_test, platform_name)
