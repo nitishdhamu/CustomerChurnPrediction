@@ -27,7 +27,7 @@ def predict_for_platform(filepath, platform_name):
     
     inference_df = active_customers.drop(['customer_id', 'name', 'email', 'churn'], axis=1)
     
-    categorical_cols = ['subscription_tier', 'billing_cycle', 'auto_renew_enabled', 'customer_acquisition_channel', 'primary_device']
+    categorical_cols = ['billing_cycle', 'auto_renew_enabled']
     inference_df = pd.get_dummies(inference_df, columns=categorical_cols, drop_first=True)
     
     for col in feature_columns:
@@ -36,7 +36,7 @@ def predict_for_platform(filepath, platform_name):
             
     inference_df = inference_df[feature_columns]
     
-    num_cols = ['user_age', 'tenure_months', 'days_since_last_login', 'avg_watch_time_hours', 'content_completion_rate', 'payment_failures', 'support_tickets', 'support_resolution_time_days']
+    num_cols = ['age', 'tenure_months', 'days_since_last_login', 'avg_watch_time_hours', 'payment_failures', 'support_tickets', 'support_resolution_time_days']
     inference_df[num_cols] = scaler.transform(inference_df[num_cols])
     
     print(f"[*] Running AI inference for {platform_name}...")

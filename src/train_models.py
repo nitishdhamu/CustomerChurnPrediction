@@ -40,7 +40,7 @@ def load_and_preprocess_data(filepath, platform_name):
     train_df = train_df.drop(['customer_id', 'name', 'email'], axis=1)
     
     print("[*] Encoding categorical features...")
-    categorical_cols = ['subscription_tier', 'billing_cycle', 'auto_renew_enabled', 'customer_acquisition_channel', 'primary_device']
+    categorical_cols = ['billing_cycle', 'auto_renew_enabled']
     train_df = pd.get_dummies(train_df, columns=categorical_cols, drop_first=True)
     
     feature_columns = train_df.drop('churn', axis=1).columns
@@ -55,7 +55,7 @@ def load_and_preprocess_data(filepath, platform_name):
     
     print("[*] Scaling numerical features...")
     scaler = StandardScaler()
-    num_cols = ['user_age', 'tenure_months', 'days_since_last_login', 'avg_watch_time_hours', 'content_completion_rate', 'payment_failures', 'support_tickets', 'support_resolution_time_days']
+    num_cols = ['age', 'tenure_months', 'days_since_last_login', 'avg_watch_time_hours', 'payment_failures', 'support_tickets', 'support_resolution_time_days']
     
     X_train_scaled = X_train.copy()
     X_test_scaled = X_test.copy()

@@ -28,13 +28,11 @@ def generate_names_and_emails(num_samples, start_id=1):
     m_names = np.random.choice(middle_initials, num_samples)
     l_names = np.random.choice(last_names, num_samples)
     
-    # E.g. "James A. Smith"
     names = np.char.add(np.char.add(f_names, m_names), l_names)
     
     words1 = np.random.choice(random_words, num_samples)
     words2 = np.random.choice(random_words, num_samples)
     
-    # Generate unique IDs to mathematically guarantee 0 email duplicates globally
     unique_ids = np.arange(start_id, start_id + num_samples).astype(str)
     email_domains = np.random.choice(domains, num_samples)
     
@@ -47,7 +45,6 @@ def generate_names_and_emails(num_samples, start_id=1):
 def generate_streaming_database(platform_name, min_users, max_users, start_id, seed):
     print(f"\n[*] Initializing Database Generation Engine for {platform_name}...")
     
-    # 100% Reproducibility per platform
     np.random.seed(seed)
     Faker.seed(seed)
     
@@ -58,27 +55,17 @@ def generate_streaming_database(platform_name, min_users, max_users, start_id, s
     names, emails = generate_names_and_emails(num_samples, start_id)
     
     tenure_months = np.random.randint(1, 61, size=num_samples)
-    user_age = np.clip(np.random.normal(loc=35, scale=12, size=num_samples), 18, 80).astype(int)
-    
-    tiers = ['Basic', 'Standard', 'Premium']
-    subscription_tier = np.random.choice(tiers, size=num_samples, p=[0.4, 0.4, 0.2])
+    age = np.clip(np.random.normal(loc=35, scale=12, size=num_samples), 18, 80).astype(int)
     
     billing_cycle = np.random.choice(['Monthly', 'Annual'], size=num_samples, p=[0.8, 0.2])
     auto_renew_enabled = np.where(billing_cycle == 'Annual', 
                                   np.random.choice(['Yes', 'No'], size=num_samples, p=[0.9, 0.1]),
                                   np.random.choice(['Yes', 'No'], size=num_samples, p=[0.7, 0.3]))
                                   
-    acq_channel = ['Organic', 'Social_Ads', 'Referral', 'Promo_Code']
-    customer_acquisition_channel = np.random.choice(acq_channel, size=num_samples, p=[0.4, 0.3, 0.1, 0.2])
-    
-    primary_device = np.random.choice(['Mobile', 'Smart TV', 'Web', 'Console'], size=num_samples, p=[0.4, 0.4, 0.1, 0.1])
-    
     days_since_last_login = np.clip(np.random.exponential(scale=7, size=num_samples), 0, 60).astype(int)
     
-    base_watch = np.where(primary_device == 'Smart TV', 40, 20)
+    base_watch = 30
     avg_watch_time_hours = np.clip(np.random.normal(loc=base_watch, scale=15), 0, 300).round(1)
-    
-    content_completion_rate = np.clip(np.random.normal(loc=0.6, scale=0.2, size=num_samples), 0.0, 1.0).round(2)
     
     payment_failures = np.random.poisson(lam=0.1, size=num_samples)
     
@@ -92,16 +79,12 @@ def generate_streaming_database(platform_name, min_users, max_users, start_id, s
         'customer_id': customer_id,
         'name': names,
         'email': emails,
-        'user_age': user_age,
+        'age': age,
         'tenure_months': tenure_months,
-        'subscription_tier': subscription_tier,
         'billing_cycle': billing_cycle,
         'auto_renew_enabled': auto_renew_enabled,
-        'customer_acquisition_channel': customer_acquisition_channel,
-        'primary_device': primary_device,
         'days_since_last_login': days_since_last_login,
         'avg_watch_time_hours': avg_watch_time_hours,
-        'content_completion_rate': content_completion_rate,
         'payment_failures': payment_failures,
         'support_tickets': support_tickets,
         'support_resolution_time_days': support_resolution_time_days
@@ -111,12 +94,9 @@ def generate_streaming_database(platform_name, min_users, max_users, start_id, s
     churn_risk = np.zeros(num_samples)
     
     churn_risk += (df['days_since_last_login'] ** 1.2) * 0.05
-    churn_risk += np.where((df['customer_acquisition_channel'] == 'Promo_Code') & (df['billing_cycle'] == 'Monthly') & (df['tenure_months'] <= 2), 2.5, 0.0)
-    churn_risk += np.where((df['subscription_tier'] == 'Premium') & (df['avg_watch_time_hours'] < 15), 3.0, 0.0)
     churn_risk += (df['payment_failures'] * 1.5)
     churn_risk += np.where(df['auto_renew_enabled'] == 'No', 2.0, 0.0)
     churn_risk += np.where((df['support_tickets'] > 0) & (df['support_resolution_time_days'] > 3), df['support_resolution_time_days'] * 0.5, 0.0)
-    churn_risk -= (df['content_completion_rate'] * 3.0)
     churn_risk -= np.log1p(df['tenure_months']) * 0.8
     churn_risk += np.random.normal(loc=0, scale=3.5, size=num_samples)
     
