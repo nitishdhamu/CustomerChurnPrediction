@@ -59,14 +59,6 @@ def predict_for_platform(filepath, platform_name):
     print(f"    - High Risk (76-100%): {len(high_risk):,} users")
     print(f"    - Medium Risk (41-75%): {len(medium_risk):,} users")
     print(f"    - Low Risk (0-40%): {len(low_risk):,} users")
-    print("-" * 77)
-    
-    print("Top 3 Highest Risk Customers (Marketing Target List):")
-    print(f"| {'Name':<25} | {'Email':<35} | {'Risk %':<8} |")
-    print("-" * 77)
-    for _, row in high_risk.head(3).iterrows():
-        risk_pct = f"{row['churn_probability']*100:.2f}%"
-        print(f"| {row['name']:<25} | {row['email']:<35} | {risk_pct:>8} |")
     print("="*77)
 
 def main():
