@@ -53,7 +53,7 @@ pip install -r requirements.txt
 ### 4. Generate the Master Databases
 Use this script to mathematically simulate millions of users across different platforms (Netflix, Prime Video, etc.).
 ```bash
-python src/generate_databases.py
+python src/generate_data.py
 ```
 *Note: The generated CSV files will be saved to `data/` and are automatically ignored by Git to prevent repository bloat.*
 
