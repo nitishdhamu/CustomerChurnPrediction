@@ -3,13 +3,15 @@ __pycache__/
 *.pyc
 .ipynb_checkpoints/
 
-# Results
-results/
-*.png
+# Massive Data files
+data/
 
 # Models
 models/
 *.pkl
 
-# Massive Data files
-data/
+# Results and Metrics
+results/
+metrics/
+*.csv
+*.png
