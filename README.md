@@ -58,32 +58,28 @@ python src/generate_data.py
 *Note: The generated CSV files will be saved to `data/` and are automatically ignored by Git to prevent repository bloat.*
 
 ### 5. Run the Machine Learning Pipeline (Training)
-This script trains independent Neural Networks for your datasets. Simply run the script to launch the **Interactive CLI Menu**, which will automatically scan your `data/` folder and let you choose which datasets to train on:
+This script trains independent Neural Networks for your datasets. Simply run the script to launch the **Interactive CLI Menu**, which will automatically scan your `data/` folder and display the exact CSV file names present.
 ```bash
 python src/train_models.py
 ```
 *(You can select one, multiple comma-separated numbers, or type 'All')*
 
-**Automated Jobs**: If you want to bypass the menu, you can still use the `--platforms` flag:
-```bash
-python src/train_models.py --platforms Netflix Prime_Video
-```
-
-When finished, the isolated models will be saved to the `models/` directory, and accuracy summaries will be saved to `metrics/<Platform>_metrics.csv`.
+When finished, the isolated models will be saved to the `models/` directory, and accuracy summaries will be saved to `metrics/<filename>_metrics.csv`.
 
 ### 6. Predict Real-World Cancellations (Inference)
 Now that the AI is trained, run the inference engine to target at-risk users! 
 
-Just like training, you can run the script to trigger the **Interactive Menu**:
+Just like training, run the script to trigger the **Interactive Menu**:
 ```bash
 python src/predict_churn.py
 ```
 
-This evaluates all currently active users on that platform and outputs three separate spreadsheets in your `results/` folder so the marketing team can prioritize their efforts:
-- `<Platform>_high_risk.csv` (76% - 100% chance of churning)
-- `<Platform>_medium_risk.csv` (41% - 75% chance of churning)
-- `<Platform>_low_risk.csv` (0% - 40% chance of churning)
+This evaluates all currently active users on that dataset and outputs three separate spreadsheets in your `results/` folder so the marketing team can prioritize their efforts:
+- `<filename>_high_risk.csv` (76% - 100% chance of churning)
+- `<filename>_medium_risk.csv` (41% - 75% chance of churning)
+- `<filename>_low_risk.csv` (0% - 40% chance of churning)
 
 ---
 *Created as part of a Data Science Internship Project.*
+
 
