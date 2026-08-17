@@ -101,7 +101,7 @@ def main():
         return
 
     for f in files_to_run:
-        prefix = os.path.basename(f).replace('.csv', '')
+        prefix = os.path.basename(f).replace('.csv', '').split('_')[0]
         predict_for_dataset(f, prefix)
 
 if __name__ == "__main__":

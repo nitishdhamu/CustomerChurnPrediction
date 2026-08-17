@@ -64,7 +64,7 @@ python src/train_models.py
 ```
 *(You can select one, multiple comma-separated numbers, or type 'All')*
 
-When finished, the isolated models will be saved to the `models/` directory, and accuracy summaries will be saved to `metrics/<filename>_metrics.csv`.
+When finished, the isolated models will be saved to the `models/` directory, and accuracy summaries will be saved to `metrics/<prefix>_metrics.csv`.
 
 ### 6. Predict Real-World Cancellations (Inference)
 Now that the AI is trained, run the inference engine to target at-risk users! 
@@ -75,9 +75,9 @@ python src/predict_churn.py
 ```
 
 This evaluates all currently active users on that dataset and outputs three separate spreadsheets in your `results/` folder so the marketing team can prioritize their efforts:
-- `<filename>_high_risk.csv` (76% - 100% chance of churning)
-- `<filename>_medium_risk.csv` (41% - 75% chance of churning)
-- `<filename>_low_risk.csv` (0% - 40% chance of churning)
+- `<prefix>_high_risk.csv` (76% - 100% chance of churning)
+- `<prefix>_medium_risk.csv` (41% - 75% chance of churning)
+- `<prefix>_low_risk.csv` (0% - 40% chance of churning)
 
 ---
 *Created as part of a Data Science Internship Project.*

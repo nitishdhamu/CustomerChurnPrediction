@@ -145,7 +145,7 @@ def main():
         return
 
     for filepath in files_to_run:
-        prefix = os.path.basename(filepath).replace('.csv', '')
+        prefix = os.path.basename(filepath).replace('.csv', '').split('_')[0]
         X_train, X_test, y_train, y_test, feature_columns, scaler = load_and_preprocess_data(filepath, prefix)
         if X_train is not None:
             train_and_evaluate(X_train, X_test, y_train, y_test, prefix, feature_columns, scaler)
