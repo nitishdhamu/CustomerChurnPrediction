@@ -40,16 +40,15 @@ def predict_for_dataset(filepath, prefix):
     print(f"\n[*] Preprocessing active customer data for {os.path.basename(filepath)}...")
     
     model_path = f"models/{prefix}_model.pkl"
-    scaler_path = f"models/{prefix}_scaler.pkl"
-    feature_path = f"models/{prefix}_features.pkl"
     
-    if not (os.path.exists(model_path) and os.path.exists(scaler_path) and os.path.exists(feature_path)):
-        print(f"[!] Error: AI models for {prefix} not found! Please run train_models.py first.")
+    if not os.path.exists(model_path):
+        print(f"[!] Error: AI model bundle for {prefix} not found at {model_path}! Please run train_models.py first.")
         return
         
-    model = joblib.load(model_path)
-    scaler = joblib.load(scaler_path)
-    feature_columns = joblib.load(feature_path)
+    model_bundle = joblib.load(model_path)
+    model = model_bundle['model']
+    scaler = model_bundle['scaler']
+    feature_columns = model_bundle['features']
     
     df = pd.read_csv(filepath)
     
