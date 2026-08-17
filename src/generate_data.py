@@ -115,9 +115,9 @@ def generate_streaming_database(platform_name, min_users, max_users, start_id, s
 if __name__ == "__main__":
     platforms = [
         ('Netflix', 2000000, 2200000),
-        ('Prime_Video', 1500000, 1600000),
-        ('Jio_Hotstar', 1200000, 1300000),
-        ('Apple_TV', 1000000, 1100000)
+        ('Prime', 1500000, 1600000),
+        ('JioHotstar', 1200000, 1300000),
+        ('AppleTV', 1000000, 1100000)
     ]
     
     start_id = 1
