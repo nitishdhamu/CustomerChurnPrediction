@@ -29,20 +29,20 @@ Make sure you have **Python 3.8+** installed on your system.
 ### 1. Clone the Repository
 ```bash
 git clone <your-repo-url>
-cd Customer_Churn_Prediction
+cd CustomerChurnPrediction
 ```
 
 ### 2. Set Up a Virtual Environment (Recommended)
 **For Windows:**
 ```bash
-python -m venv venv
-venv\Scripts\activate
+python -m venv .venv
+.venv\Scripts\activate
 ```
 
 **For macOS / Linux:**
 ```bash
-python3 -m venv venv
-source venv/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate
 ```
 
 ### 3. Install Dependencies
