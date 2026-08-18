@@ -4,47 +4,52 @@ import os
 import joblib
 import glob
 
-def get_interactive_files():
-    files = glob.glob('data/*.csv')
-    if not files:
-        print("[!] No CSV datasets found in the data/ folder.")
+def get_interactive_models():
+    model_files = glob.glob('models/*_model.pkl')
+    if not model_files:
+        print("[!] No AI models found in the models/ folder. Please run train_models.py first.")
         return []
     
-    files = sorted(files)
+    model_files = sorted(model_files)
+    prefixes = [os.path.basename(m).replace('_model.pkl', '') for m in model_files]
     
-    print("\n[*] Available Datasets:")
-    for i, f in enumerate(files, 1):
-        print(f"    {i}. {os.path.basename(f)}")
-    print(f"    {len(files) + 1}. All Datasets")
+    print("\n[*] Available Trained AI Models:")
+    for i, p in enumerate(prefixes, 1):
+        print(f"    {i}. {p}")
+    print(f"    {len(prefixes) + 1}. All Models")
     
-    choice = input("\n[?] Select datasets to run inference on (e.g., '1', '1,3', or 'All'): ").strip()
+    choice = input("\n[?] Select models to run inference with (e.g., '1', '1,3', or 'All'): ").strip()
     
-    if choice.lower() == 'all' or choice == str(len(files) + 1):
-        return files
+    if choice.lower() == 'all' or choice == str(len(prefixes) + 1):
+        return prefixes
         
-    selected_files = []
+    selected_prefixes = []
     for c in choice.split(','):
         c = c.strip()
         if c.isdigit():
             idx = int(c) - 1
-            if 0 <= idx < len(files):
-                selected_files.append(files[idx])
+            if 0 <= idx < len(prefixes):
+                selected_prefixes.append(prefixes[idx])
         else:
-            for f in files:
-                if os.path.basename(f) == c:
-                    selected_files.append(f)
+            for p in prefixes:
+                if p.lower() == c.lower():
+                    selected_prefixes.append(p)
                     
-    return selected_files
+    return selected_prefixes
 
-def predict_for_dataset(filepath, prefix):
-    print(f"\n[*] Preprocessing active customer data for {os.path.basename(filepath)}...")
-    
-    model_path = f"models/{prefix}_model.pkl"
-    
-    if not os.path.exists(model_path):
-        print(f"[!] Error: AI model bundle for {prefix} not found at {model_path}! Please run train_models.py first.")
+def predict_for_dataset(prefix):
+    # Find the corresponding dataset in the data folder
+    potential_files = glob.glob(f"data/{prefix}*.csv")
+    if not potential_files:
+        print(f"\n[!] Error: No dataset found in data/ starting with '{prefix}'.")
         return
         
+    # Default to the first match
+    filepath = potential_files[0]
+    
+    print(f"\n[*] Preprocessing active customer data for {os.path.basename(filepath)} using {prefix} model...")
+    
+    model_path = f"models/{prefix}_model.pkl"
     model_bundle = joblib.load(model_path)
     model = model_bundle['model']
     scaler = model_bundle['scaler']
@@ -52,10 +57,17 @@ def predict_for_dataset(filepath, prefix):
     
     df = pd.read_csv(filepath)
     
-    active_customers = df[df['churn'] == 0].copy()
+    if 'churn' not in df.columns:
+        # If it's a completely new unseen dataset without churn labels
+        active_customers = df.copy()
+    else:
+        active_customers = df[df['churn'] == 0].copy()
+        
     print(f"[*] Found {len(active_customers):,} currently active subscribers.")
     
-    inference_df = active_customers.drop(['customer_id', 'name', 'email', 'churn'], axis=1)
+    # Drop identifying columns that shouldn't be predicted on
+    cols_to_drop = ['customer_id', 'name', 'email', 'churn']
+    inference_df = active_customers.drop([c for c in cols_to_drop if c in active_customers.columns], axis=1)
     
     categorical_cols = ['billing_cycle', 'auto_renew_enabled']
     inference_df = pd.get_dummies(inference_df, columns=categorical_cols, drop_first=True)
@@ -85,7 +97,7 @@ def predict_for_dataset(filepath, prefix):
     low_risk.to_csv(f"results/{prefix}_low_risk.csv", index=False)
     
     print("="*77)
-    print(f"[+] Prediction Complete for {os.path.basename(filepath)}!")
+    print(f"[+] Prediction Complete for {prefix}!")
     print(f"    - High Risk (76-100%): {len(high_risk):,} users")
     print(f"    - Medium Risk (41-75%): {len(medium_risk):,} users")
     print(f"    - Low Risk (0-40%): {len(low_risk):,} users")
@@ -94,15 +106,14 @@ def predict_for_dataset(filepath, prefix):
 def main():
     print("[*] Starting AI inference engine...")
     
-    files_to_run = get_interactive_files()
+    prefixes_to_run = get_interactive_models()
     
-    if not files_to_run:
-        print("[!] No datasets selected. Exiting.")
+    if not prefixes_to_run:
+        print("[!] No models selected. Exiting.")
         return
 
-    for f in files_to_run:
-        prefix = os.path.basename(f).replace('.csv', '').split('_')[0]
-        predict_for_dataset(f, prefix)
+    for prefix in prefixes_to_run:
+        predict_for_dataset(prefix)
 
 if __name__ == "__main__":
     main()
