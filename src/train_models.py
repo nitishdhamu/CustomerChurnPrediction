@@ -3,6 +3,7 @@ import numpy as np
 import os
 import joblib
 import glob
+import warnings
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -11,24 +12,29 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 
+# Suppress all warnings for clean terminal UI
+warnings.filterwarnings('ignore')
+
 def get_interactive_files():
     files = glob.glob('data/*.csv')
     if not files:
-        print("[!] No CSV datasets found in the data/ folder.")
+        print("\n[!] No CSV datasets found in the data/ folder.\n")
         return []
         
     files = sorted(files)
     
     if len(files) == 1:
-        print(f"\n[*] Only one dataset found: {os.path.basename(files[0])}. Automatically selecting it...")
+        print(f"\n[*] Only one dataset found: {os.path.basename(files[0])}. Automatically selected.")
         return files
     
-    print("\n[*] Available Datasets:")
+    print("\n[?] SELECT DATASETS FOR TRAINING")
+    print("--------------------------------------------------")
     for i, f in enumerate(files, 1):
         print(f"    {i}. {os.path.basename(f)}")
     print(f"    {len(files) + 1}. All Datasets")
+    print("--------------------------------------------------")
     
-    choice = input("\n[?] Select datasets to train on (e.g., '1', '1,3', or 'All'): ").strip()
+    choice = input("\nEnter choice (e.g., '1', '1,3', or 'All'): ").strip()
     
     if choice.lower() == 'all' or choice == str(len(files) + 1):
         return files
@@ -48,24 +54,24 @@ def get_interactive_files():
     return selected_files
 
 def load_and_preprocess_data(filepath, prefix):
-    print(f"\n[*] =========================================")
-    print(f"[*] Processing dataset: {os.path.basename(filepath)}")
-    print(f"[*] =========================================")
+    print(f"\n[*] --------------------------------------------------")
+    print(f"[*] TRAINING PIPELINE: {prefix.upper()}")
+    print(f"[*] --------------------------------------------------")
     
-    print(f"[*] Loading {filepath}...")
+    print(f"    -> Loading {os.path.basename(filepath)}...")
     df = pd.read_csv(filepath)
-    print(f"[*] Total rows found: {len(df):,}")
     
     train_df = df[df['tenure_months'] > 6].copy()
-    print(f"[*] Filtered to {len(train_df):,} mature users (tenure > 6 months) for AI training.")
     
     if len(train_df) > 500000:
-        print("[*] Sampling 500,000 users for efficient model training...")
+        print(f"    -> Sampling 500,000 mature users for efficiency...")
         train_df = train_df.sample(n=500000, random_state=42)
+    else:
+        print(f"    -> Filtering to {len(train_df):,} mature users...")
     
     train_df = train_df.drop(['customer_id', 'name', 'email'], axis=1)
     
-    print("[*] Encoding categorical features...")
+    print("    -> Encoding and splitting feature matrix...")
     categorical_cols = ['billing_cycle', 'auto_renew_enabled']
     train_df = pd.get_dummies(train_df, columns=categorical_cols, drop_first=True)
     
@@ -74,10 +80,9 @@ def load_and_preprocess_data(filepath, prefix):
     X = train_df.drop('churn', axis=1)
     y = train_df['churn']
     
-    print("[*] Splitting data into train and test sets...")
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
     
-    print("[*] Scaling numerical features...")
+    print("    -> Normalizing numerical distributions...")
     scaler = StandardScaler()
     num_cols = ['age', 'tenure_months', 'days_since_last_login', 'avg_watch_time_hours', 'payment_failures', 'support_tickets', 'support_resolution_time_days']
     
@@ -90,7 +95,7 @@ def load_and_preprocess_data(filepath, prefix):
     return X_train_scaled, X_test_scaled, y_train, y_test, feature_columns, scaler
 
 def train_and_evaluate(X_train, X_test, y_train, y_test, prefix, feature_columns, scaler):
-    print(f"[*] Initializing Artificial Intelligence Models for {prefix}...")
+    print("    -> Initializing AI architectures...")
     models = {
         'Logistic Regression': LogisticRegression(max_iter=1000, class_weight='balanced'),
         'Decision Tree': DecisionTreeClassifier(max_depth=7, class_weight='balanced'),
@@ -100,7 +105,6 @@ def train_and_evaluate(X_train, X_test, y_train, y_test, prefix, feature_columns
     results = []
     
     for name, model in models.items():
-        print(f"    -> Training {name}...")
         model.fit(X_train, y_train)
         preds = model.predict(X_test)
         probs = model.predict_proba(X_test)[:, 1]
@@ -121,7 +125,7 @@ def train_and_evaluate(X_train, X_test, y_train, y_test, prefix, feature_columns
         })
         
         if name == 'Neural Network':
-            print(f"[*] Saving unified {name} bundle (Model + Scaler + Features) for {prefix}...")
+            print("    -> Exporting production Neural Network bundle...")
             os.makedirs("models", exist_ok=True)
             model_bundle = {
                 'model': model,
@@ -134,18 +138,23 @@ def train_and_evaluate(X_train, X_test, y_train, y_test, prefix, feature_columns
     os.makedirs("metrics", exist_ok=True)
     out_csv = f"metrics/{prefix}_metrics.csv"
     results_df.to_csv(out_csv, index=False)
-    print(f"[*] Training Complete! Results saved to {out_csv}")
+    
+    print(f"\n[+] COMPLETE: Results saved to {out_csv}")
+    print("--------------------------------------------------")
     print(results_df.to_string(index=False))
-    print("\n")
+    print("--------------------------------------------------")
 
 def main():
-    print("[*] Starting AI Training Engine...")
+    print("\n==================================================")
+    print("      ARTIFICIAL INTELLIGENCE TRAINING ENGINE")
+    print("==================================================")
+    
     os.makedirs("metrics", exist_ok=True)
     
     files_to_run = get_interactive_files()
     
     if not files_to_run:
-        print("[!] No datasets selected. Exiting.")
+        print("\n[!] Operation cancelled. No datasets selected.\n")
         return
 
     for filepath in files_to_run:
@@ -153,6 +162,10 @@ def main():
         X_train, X_test, y_train, y_test, feature_columns, scaler = load_and_preprocess_data(filepath, prefix)
         if X_train is not None:
             train_and_evaluate(X_train, X_test, y_train, y_test, prefix, feature_columns, scaler)
+            
+    print("\n==================================================")
+    print("       ALL AI MODELS TRAINED SUCCESSFULLY")
+    print("==================================================\n")
 
 if __name__ == "__main__":
     main()
