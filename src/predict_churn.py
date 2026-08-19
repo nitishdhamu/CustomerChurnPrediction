@@ -5,13 +5,12 @@ import joblib
 import glob
 import warnings
 
-# Suppress all warnings for clean terminal UI
 warnings.filterwarnings('ignore')
 
 def get_interactive_models():
     model_files = glob.glob('models/*_model.pkl')
     if not model_files:
-        print("\n[!] No AI models found in the models/ folder. Please run train_models.py first.\n")
+        print("\nNo models found in models/ folder. Please run train_models.py first.\n")
         return []
     
     model_files = sorted(model_files)
@@ -20,19 +19,17 @@ def get_interactive_models():
     if len(prefixes) == 1:
         csv_files = glob.glob(f"data/{prefixes[0]}*.csv")
         display_name = os.path.basename(csv_files[0]) if csv_files else f"{prefixes[0]} (CSV missing)"
-        print(f"\n[*] Only one dataset model found: {display_name}. Automatically selected.")
+        print(f"\nFound only one model ({display_name}), using it automatically.")
         return prefixes
 
-    print("\n[?] SELECT DATASETS TO RUN INFERENCE ON")
-    print("--------------------------------------------------")
+    print("\nSelect datasets to predict churn:")
     for i, p in enumerate(prefixes, 1):
         csv_files = glob.glob(f"data/{p}*.csv")
         display_name = os.path.basename(csv_files[0]) if csv_files else f"{p} (CSV missing)"
-        print(f"    {i}. {display_name}")
-    print(f"    {len(prefixes) + 1}. All Datasets")
-    print("--------------------------------------------------")
+        print(f"  {i}. {display_name}")
+    print(f"  {len(prefixes) + 1}. All Datasets")
     
-    choice = input("\nEnter choice (e.g., '1', '1,3', or 'All'): ").strip()
+    choice = input("\nEnter choice (e.g. 1, 1,3, or All): ").strip()
     
     if choice.lower() == 'all' or choice == str(len(prefixes) + 1):
         return prefixes
@@ -56,16 +53,13 @@ def get_interactive_models():
 def predict_for_dataset(prefix):
     potential_files = glob.glob(f"data/{prefix}*.csv")
     if not potential_files:
-        print(f"\n[!] Error: No dataset found in data/ starting with '{prefix}'.")
+        print(f"\nError: No dataset found in data/ starting with '{prefix}'.")
         return
         
     filepath = potential_files[0]
     
-    print(f"\n[*] --------------------------------------------------")
-    print(f"[*] INFERENCE ENGINE: {prefix.upper()}")
-    print(f"[*] --------------------------------------------------")
-    
-    print(f"    -> Loading {os.path.basename(filepath)}...")
+    print(f"\n--- Predicting churn for {prefix} ---")
+    print(f"Loading {os.path.basename(filepath)} and model...")
     model_path = f"models/{prefix}_model.pkl"
     model_bundle = joblib.load(model_path)
     model = model_bundle['model']
@@ -79,13 +73,20 @@ def predict_for_dataset(prefix):
     else:
         active_customers = df[df['churn'] == 0].copy()
         
-    print(f"    -> Preprocessing {len(active_customers):,} active subscribers...")
+    if len(active_customers) == 0:
+        print(f"No active customers found to predict on in {os.path.basename(filepath)}.")
+        return
+        
+    print(f"Found {len(active_customers):,} active subscribers.")
     
-    cols_to_drop = ['customer_id', 'name', 'email', 'churn']
-    inference_df = active_customers.drop([c for c in cols_to_drop if c in active_customers.columns], axis=1)
+    drop_candidates = ['customer_id', 'name', 'email', 'churn']
+    cols_to_drop = [c for c in drop_candidates if c in active_customers.columns]
+    inference_df = active_customers.drop(cols_to_drop, axis=1)
     
-    categorical_cols = ['billing_cycle', 'auto_renew_enabled']
-    inference_df = pd.get_dummies(inference_df, columns=categorical_cols, drop_first=True)
+    cat_candidates = ['billing_cycle', 'auto_renew_enabled']
+    categorical_cols = [c for c in cat_candidates if c in inference_df.columns]
+    if categorical_cols:
+        inference_df = pd.get_dummies(inference_df, columns=categorical_cols, drop_first=True)
     
     for col in feature_columns:
         if col not in inference_df.columns:
@@ -93,10 +94,11 @@ def predict_for_dataset(prefix):
             
     inference_df = inference_df[feature_columns]
     
-    num_cols = ['age', 'tenure_months', 'days_since_last_login', 'avg_watch_time_hours', 'payment_failures', 'support_tickets', 'support_resolution_time_days']
-    inference_df[num_cols] = scaler.transform(inference_df[num_cols])
+    num_candidates = ['age', 'tenure_months', 'days_since_last_login', 'avg_watch_time_hours', 'payment_failures', 'support_tickets', 'support_resolution_time_days']
+    num_cols = [c for c in num_candidates if c in inference_df.columns]
+    if num_cols:
+        inference_df[num_cols] = scaler.transform(inference_df[num_cols])
     
-    print("    -> Executing Neural Network predictions...")
     churn_probs = model.predict_proba(inference_df)[:, 1]
     
     active_customers['churn_probability'] = np.round(churn_probs, 4)
@@ -111,30 +113,24 @@ def predict_for_dataset(prefix):
     medium_risk.to_csv(f"results/{prefix}_medium_risk.csv", index=False)
     low_risk.to_csv(f"results/{prefix}_low_risk.csv", index=False)
     
-    print("\n[+] COMPLETE: Marketing Target Lists Generated.")
-    print("--------------------------------------------------")
-    print(f"    - High Risk   (76-100%): {len(high_risk):,} users")
-    print(f"    - Medium Risk (41-75%) : {len(medium_risk):,} users")
-    print(f"    - Low Risk    (0-40%)  : {len(low_risk):,} users")
-    print("--------------------------------------------------")
+    print(f"Saved results to results/ folder:")
+    print(f"  High risk (>75%): {len(high_risk):,} users")
+    print(f"  Medium risk (41-75%): {len(medium_risk):,} users")
+    print(f"  Low risk (<=40%): {len(low_risk):,} users")
 
 def main():
-    print("\n==================================================")
-    print("      ARTIFICIAL INTELLIGENCE INFERENCE ENGINE")
-    print("==================================================")
+    print("=== Predict Churn ===")
     
     prefixes_to_run = get_interactive_models()
     
     if not prefixes_to_run:
-        print("\n[!] Operation cancelled. No models selected.\n")
+        print("No models selected. Exiting.")
         return
 
     for prefix in prefixes_to_run:
         predict_for_dataset(prefix)
         
-    print("\n==================================================")
-    print("     ALL INFERENCE PREDICTIONS COMPLETED")
-    print("==================================================\n")
+    print("\nPredictions finished.")
 
 if __name__ == "__main__":
     main()

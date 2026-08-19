@@ -6,11 +6,9 @@ import warnings
 
 from faker import Faker
 
-# Suppress all warnings for clean terminal UI
 warnings.filterwarnings('ignore')
 
 def generate_names_and_emails(num_samples, start_id=1):
-    print("    -> Generating unique demographic profiles...")
     fake = Faker(['en_US', 'en_GB'])
     
     first_names_set = set()
@@ -24,7 +22,6 @@ def generate_names_and_emails(num_samples, start_id=1):
     middle_initials = [f" {c}. " for c in string.ascii_uppercase]
     
     domains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'icloud.com']
-    
     random_words = ['skater', 'gamer', 'star', 'blue', 'red', 'ninja', 'shadow', 'cool', 'super', 'music', 'coder', 'hero', 'pizza', 'sunny', 'moon', 'coffee', 'tech', 'happy', 'swift', 'magic']
     
     f_names = np.random.choice(first_names, num_samples)
@@ -35,7 +32,6 @@ def generate_names_and_emails(num_samples, start_id=1):
     
     words1 = np.random.choice(random_words, num_samples)
     words2 = np.random.choice(random_words, num_samples)
-    
     unique_ids = np.arange(start_id, start_id + num_samples).astype(str)
     email_domains = np.random.choice(domains, num_samples)
     
@@ -46,20 +42,17 @@ def generate_names_and_emails(num_samples, start_id=1):
     return names, emails
 
 def generate_streaming_database(platform_name, min_users, max_users, start_id, seed):
-    print(f"\n[*] --------------------------------------------------")
-    print(f"[*] BUILDING DATASET: {platform_name.upper()}")
-    print(f"[*] --------------------------------------------------")
+    print(f"\nGenerating dataset for {platform_name}...")
     
     np.random.seed(seed)
     Faker.seed(seed)
     
     num_samples = np.random.randint(min_users, max_users)
-    print(f"    -> Target Size: {num_samples:,} simulated users.")
+    print(f"Creating {num_samples:,} user records...")
     
     customer_id = [f"{platform_name[:3].upper()}_{i:08d}" for i in range(1, num_samples + 1)]
     names, emails = generate_names_and_emails(num_samples, start_id)
     
-    print("    -> Simulating 5 years of historical activity...")
     tenure_months = np.random.randint(1, 61, size=num_samples)
     age = np.clip(np.random.normal(loc=35, scale=12, size=num_samples), 18, 80).astype(int)
     
@@ -96,9 +89,8 @@ def generate_streaming_database(platform_name, min_users, max_users, start_id, s
         'support_resolution_time_days': support_resolution_time_days
     })
     
-    print("    -> Calculating churn risk trajectories...")
+    # calculate churn probabilities based on user behavior
     churn_risk = np.zeros(num_samples)
-    
     churn_risk += (df['days_since_last_login'] ** 1.2) * 0.05
     churn_risk += (df['payment_failures'] * 1.5)
     churn_risk += np.where(df['auto_renew_enabled'] == 'No', 2.0, 0.0)
@@ -112,21 +104,18 @@ def generate_streaming_database(platform_name, min_users, max_users, start_id, s
     
     os.makedirs("data", exist_ok=True)
     out_path = f"data/{platform_name}_dataset.csv"
-    print(f"    -> Saving compiled database to {out_path}...")
     df.to_csv(out_path, index=False)
-    print(f"[+] COMPLETE: {platform_name} Dataset Generated.")
+    print(f"Saved {num_samples:,} rows to {out_path}")
     
     return num_samples
 
 def get_interactive_platforms(platforms):
-    print("\n[?] SELECT TARGET PLATFORMS")
-    print("--------------------------------------------------")
+    print("\nSelect platforms to generate:")
     for i, plat in enumerate(platforms, 1):
-        print(f"    {i}. {plat[0]}")
-    print(f"    {len(platforms) + 1}. All Platforms")
-    print("--------------------------------------------------")
+        print(f"  {i}. {plat[0]}")
+    print(f"  {len(platforms) + 1}. All Platforms")
     
-    choice = input("\nEnter choice (e.g., '1', '1,3', or 'All'): ").strip()
+    choice = input("\nEnter choice (e.g. 1, 1,3, or All): ").strip()
     
     if choice.lower() == 'all' or choice == str(len(platforms) + 1):
         return platforms
@@ -146,9 +135,7 @@ def get_interactive_platforms(platforms):
     return selected_platforms
 
 if __name__ == "__main__":
-    print("\n==================================================")
-    print("     SYNTHETIC DATA GENERATION ENGINE")
-    print("==================================================")
+    print("=== Synthetic Data Generator ===")
     
     all_platforms = [
         ('Netflix', 2000000, 2200000),
@@ -160,7 +147,7 @@ if __name__ == "__main__":
     platforms_to_run = get_interactive_platforms(all_platforms)
     
     if not platforms_to_run:
-        print("\n[!] Operation cancelled. No platforms selected.\n")
+        print("No platforms selected. Exiting.")
     else:
         start_id = 1
         seed_val = 42
@@ -169,6 +156,4 @@ if __name__ == "__main__":
             start_id += num_gen
             seed_val += 1
         
-        print("\n==================================================")
-        print("  ALL REQUESTED DATASETS GENERATED SUCCESSFULLY")
-        print("==================================================\n")
+        print("\nData generation complete.")

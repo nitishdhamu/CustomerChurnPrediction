@@ -1,85 +1,66 @@
-# 📺 Streaming Platform Subscription Predictor
+# Customer Churn Prediction
 
-![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
-![scikit-learn](https://img.shields.io/badge/scikit--learn-Enabled-orange)
-![Status](https://img.shields.io/badge/Status-Complete-success)
+A machine learning project to predict customer churn for streaming services like Netflix, Prime, AppleTV, and JioHotstar.
 
-Welcome to the **Streaming Platform Subscription Predictor**! This repository houses an end-to-end Machine Learning pipeline designed to solve one of the biggest problems in the streaming industry: **Customer Churn**.
+The goal is to analyze user engagement, account info, and support history to find which subscribers are likely to cancel their subscriptions.
 
-By analyzing user engagement metrics, account settings, and friction points from historical data, this tool predicts which currently active users are at a high risk of canceling their subscription, allowing businesses to proactively intervene.
+## Overview
 
----
+1. Data Generation: Generates sample customer datasets with activity metrics, billing info, and churn flags.
+2. Model Training: Trains three models (Logistic Regression, Decision Tree, and MLP Neural Network) on each platform's data and saves evaluation metrics.
+3. Prediction: Loads the trained model to score active customers and groups them into high, medium, and low risk lists.
 
-## ⚙️ What Does This Project Do?
-
-1. **Generates Synthetic Data**: It generates massive, hyper-realistic databases mimicking popular streaming services (Netflix, Prime, AppleTV, JioHotstar) with millions of unique users.
-2. **Trains Predictive Models**: It isolates data per platform, drops PII (so the AI learns behavior, not names), and trains three distinct algorithms:
-   - **Logistic Regression**: A powerful statistical baseline.
-   - **Decision Tree**: Highly interpretable, allowing us to see *why* users leave.
-   - **Neural Network (MLP)**: A deep learning model that captures complex behavioral patterns.
-3. **Real-World Inference**: It applies the trained platform-specific Neural Networks to currently active subscribers and categorizes their flight risk into High, Medium, and Low tiers for the Marketing Team.
-
----
-
-## 📖 Quick Start Guide
+## Setup
 
 ### Prerequisites
-Make sure you have **Python 3.8+** installed on your system.
+Python 3.8 or higher.
 
-### 1. Clone the Repository
+### 1. Clone the repository
 ```bash
 git clone https://github.com/nitishdhamu/CustomerChurnPrediction.git
 cd CustomerChurnPrediction
 ```
 
-### 2. Set Up a Virtual Environment (Recommended)
-**For Windows:**
+### 2. Create virtual environment
+Windows:
 ```bash
 python -m venv venv
 venv\Scripts\activate
 ```
 
-**For macOS / Linux:**
+Mac / Linux:
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 ```
 
-### 3. Install Dependencies
+### 3. Install requirements
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Generate Some Sample Databases (If needed)
-Use this script to launch the interactive generation menu to mathematically simulate millions of users across different platforms (Netflix, Prime, etc.).
+## Running the Code
+
+### 1. Generate data
+To create sample datasets:
 ```bash
 python src/generate_data.py
 ```
-*Note: The generated CSV files will be saved to `data/` and are automatically ignored by Git to prevent repository bloat.*
+This lets you pick which platform to generate data for. The generated files are saved in the `data/` folder.
 
-### 5. Run the Machine Learning Pipeline (Training)
-This script trains independent Neural Networks for your datasets. Simply run the script to launch the **Interactive CLI Menu**, which will automatically scan your `data/` folder and display the exact CSV file names present. (If only one dataset is present, it will intelligently auto-select it and skip the menu).
+### 2. Train models
+To train the models on your data:
 ```bash
 python src/train_models.py
 ```
-*(You can select one, multiple comma-separated numbers, or type 'All')*
+You can choose which dataset to train on from the menu (or it will auto-run if only one dataset exists). The trained model bundle is saved in `models/` and evaluation metrics are saved in `metrics/`.
 
-When finished, the isolated models will be seamlessly bundled (Model + Scaler + Features) into the `models/` directory, and accuracy summaries will be saved to `metrics/<prefix>_metrics.csv`.
-
-### 6. Predict Real-World Cancellations (Inference)
-Now that the AI is trained, run the inference engine to target at-risk users! 
-
-Run the script to trigger the **Interactive Menu**. It will dynamically scan your `models/` directory to ensure you only run predictions on datasets with a successfully trained AI model, safely mapping them back to their original CSV names for easy selection. (Like training, it will auto-bypass the menu if only one model exists).
+### 3. Predict churn
+To predict churn for active subscribers:
 ```bash
 python src/predict_churn.py
 ```
-
-This evaluates all currently active users on that dataset and outputs three separate spreadsheets in your `results/` folder so the marketing team can prioritize their efforts:
-- `<prefix>_high_risk.csv` (76% - 100% chance of churning)
-- `<prefix>_medium_risk.csv` (41% - 75% chance of churning)
-- `<prefix>_low_risk.csv` (0% - 40% chance of churning)
-
----
-*Created as part of a Data Science Internship Project.*
-
-
+This scans for trained models, runs predictions on active users, and saves the categorized lists into the `results/` folder:
+- `<platform>_high_risk.csv` (churn probability > 75%)
+- `<platform>_medium_risk.csv` (churn probability between 40% and 75%)
+- `<platform>_low_risk.csv` (churn probability <= 40%)
