@@ -63,6 +63,7 @@ def predict_for_dataset(prefix):
     model_path = f"models/{prefix}_model.pkl"
     model_bundle = joblib.load(model_path)
     model = model_bundle['model']
+    model_name = model_bundle.get('model_name', model_bundle.get('model_type', 'Neural Network'))
     scaler = model_bundle['scaler']
     feature_columns = model_bundle['features']
     
@@ -99,6 +100,7 @@ def predict_for_dataset(prefix):
     if num_cols:
         inference_df[num_cols] = scaler.transform(inference_df[num_cols])
     
+    print(f"-> Executing {model_name} predictions...")
     churn_probs = model.predict_proba(inference_df)[:, 1]
     
     active_customers['churn_probability'] = np.round(churn_probs, 4)

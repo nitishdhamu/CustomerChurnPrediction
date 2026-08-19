@@ -131,6 +131,8 @@ def train_and_evaluate(X_train, X_test, y_train, y_test, prefix, feature_columns
             os.makedirs("models", exist_ok=True)
             model_bundle = {
                 'model': model,
+                'model_name': name,
+                'model_type': name,
                 'scaler': scaler,
                 'features': feature_columns
             }
