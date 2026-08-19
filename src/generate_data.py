@@ -112,17 +112,49 @@ def generate_streaming_database(platform_name, min_users, max_users, start_id, s
     
     return num_samples
 
+def get_interactive_platforms(platforms):
+    print("\n[*] Available Platforms to Generate:")
+    for i, plat in enumerate(platforms, 1):
+        print(f"    {i}. {plat[0]}")
+    print(f"    {len(platforms) + 1}. All Platforms")
+    
+    choice = input("\n[?] Select platforms to generate (e.g., '1', '1,3', or 'All'): ").strip()
+    
+    if choice.lower() == 'all' or choice == str(len(platforms) + 1):
+        return platforms
+        
+    selected_platforms = []
+    for c in choice.split(','):
+        c = c.strip()
+        if c.isdigit():
+            idx = int(c) - 1
+            if 0 <= idx < len(platforms):
+                selected_platforms.append(platforms[idx])
+        else:
+            for p in platforms:
+                if p[0].lower() == c.lower():
+                    selected_platforms.append(p)
+                    
+    return selected_platforms
+
 if __name__ == "__main__":
-    platforms = [
+    print("[*] Starting Data Generation Engine...")
+    
+    all_platforms = [
         ('Netflix', 2000000, 2200000),
         ('Prime', 1500000, 1600000),
         ('JioHotstar', 1200000, 1300000),
         ('AppleTV', 1000000, 1100000)
     ]
     
-    start_id = 1
-    seed_val = 42
-    for plat, min_u, max_u in platforms:
-        num_gen = generate_streaming_database(plat, min_u, max_u, start_id, seed_val)
-        start_id += num_gen
-        seed_val += 1
+    platforms_to_run = get_interactive_platforms(all_platforms)
+    
+    if not platforms_to_run:
+        print("[!] No platforms selected. Exiting.")
+    else:
+        start_id = 1
+        seed_val = 42
+        for plat, min_u, max_u in platforms_to_run:
+            num_gen = generate_streaming_database(plat, min_u, max_u, start_id, seed_val)
+            start_id += num_gen
+            seed_val += 1
