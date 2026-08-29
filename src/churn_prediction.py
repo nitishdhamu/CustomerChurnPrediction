@@ -150,7 +150,7 @@ def main():
     feat_imp = feat_imp.sort_values(by='Importance', ascending=False)
     
     plt.figure(figsize=(10, 6))
-    sns.barplot(x='Importance', y='Feature', data=feat_imp, palette='viridis')
+    sns.barplot(x='Importance', y='Feature', data=feat_imp, hue='Feature', legend=False, palette='viridis')
     plt.title('Feature Importance (Streaming Subscriptions)')
     plt.tight_layout()
     plt.savefig("results/feature_importance.png")
