@@ -8,3 +8,7 @@ data/
 results/
 *.csv
 *.png
+
+# Models
+models/
+*.pkl
