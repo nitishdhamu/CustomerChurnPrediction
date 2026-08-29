@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neural_network import MLPClassifier
@@ -15,7 +15,7 @@ from sklearn.metrics import confusion_matrix, roc_curve
 from imblearn.over_sampling import SMOTE
 
 def load_and_preprocess_data(filepath):
-    print("Loading data...")
+    print("Loading streaming data...")
     df = pd.read_csv(filepath)
     
     # Drop customer_id as it's not a predictive feature
@@ -23,7 +23,7 @@ def load_and_preprocess_data(filepath):
     
     # Encode categorical variables
     print("Encoding categorical features...")
-    categorical_cols = ['contract_type', 'payment_method']
+    categorical_cols = ['subscription_tier', 'device_type', 'auto_renew_enabled']
     df = pd.get_dummies(df, columns=categorical_cols, drop_first=True)
     
     # Separate features and target
@@ -38,8 +38,7 @@ def load_and_preprocess_data(filepath):
     print("Scaling numerical features...")
     scaler = StandardScaler()
     
-    # Identify numerical columns (those that are not uint8/bool from get_dummies)
-    num_cols = ['tenure_months', 'monthly_charges', 'total_usage_gb', 'support_calls', 'activity_log_count']
+    num_cols = ['tenure_months', 'monthly_active_days', 'avg_watch_time_hours', 'payment_failures', 'support_tickets']
     
     X_train_scaled = X_train.copy()
     X_test_scaled = X_test.copy()
@@ -91,7 +90,7 @@ def plot_roc_curves(models_probs, y_test, filename):
     plt.plot([0, 1], [0, 1], 'k--')
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
-    plt.title('ROC Curves')
+    plt.title('ROC Curves (Streaming Churn)')
     plt.legend()
     plt.tight_layout()
     plt.savefig(filename)
@@ -99,7 +98,7 @@ def plot_roc_curves(models_probs, y_test, filename):
 
 def main():
     os.makedirs("results", exist_ok=True)
-    data_path = os.path.join("data", "customer_churn_data.csv")
+    data_path = os.path.join("data", "streaming_churn_data.csv")
     
     if not os.path.exists(data_path):
         print(f"Error: Data file not found at {data_path}. Please run generate_data.py first.")
@@ -158,7 +157,7 @@ def main():
     
     plt.figure(figsize=(10, 6))
     sns.barplot(x='Importance', y='Feature', data=feat_imp)
-    plt.title('Feature Importance (Decision Tree)')
+    plt.title('Feature Importance (Streaming Subscriptions)')
     plt.tight_layout()
     plt.savefig("results/feature_importance.png")
     plt.close()
