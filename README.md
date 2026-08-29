@@ -1,83 +1,105 @@
-# Streaming Platform Subscription Predictor 🍿🎧
+# 🍿 Streaming Platform Subscription Predictor
 
 ![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-Enabled-orange)
 ![Imbalanced-Learn](https://img.shields.io/badge/Imbalanced--Learn-SMOTE-green)
 ![Status](https://img.shields.io/badge/Status-Complete-success)
 
-## 📌 Overview
-The biggest challenge for streaming platforms like Netflix, Spotify, or Amazon Prime isn't getting new users—it's stopping existing users from canceling (churn). This project provides an end-to-end Machine Learning pipeline to identify subscribers who are at a high risk of canceling their subscriptions. 
+Welcome to the **Streaming Platform Subscription Predictor**! This repository houses an end-to-end Machine Learning pipeline designed to solve one of the biggest problems in the streaming industry (Netflix, Spotify, Hulu, etc.): **Customer Churn**.
 
-By accurately predicting subscription churn based on viewing/listening habits and account metrics, businesses can proactively offer incentives or targeted support to retain at-risk customers.
+By analyzing user engagement metrics, account settings, and friction points, this tool predicts which users are at a high risk of canceling their subscription, allowing businesses to proactively intervene.
 
-This repository includes:
-1. **Synthetic Data Generation**: A robust script simulating realistic streaming platform data (watch time, active days, subscription tiers, payment failures).
-2. **Data Preprocessing**: Handles categorical encoding, feature scaling, and addresses class imbalance using **SMOTE** (Synthetic Minority Over-sampling Technique).
-3. **Machine Learning Models**: Trains and evaluates Logistic Regression, Decision Trees, and Neural Networks (Multi-Layer Perceptron).
-4. **Evaluation & Visualization**: Automatically generates Confusion Matrices, ROC curves, and Feature Importance plots.
+---
 
-## ⚙️ Features & Architecture
-- **`generate_data.py`**: Simulates 10,000 user profiles with streaming-specific features such as `monthly_active_days`, `avg_watch_time_hours`, `subscription_tier`, `device_type`, `auto_renew_enabled`, and `payment_failures`. It injects logical correlations (e.g., users who turn off auto-renew and don't watch much content are highly likely to cancel).
-- **`churn_prediction.py`**: The core ML pipeline.
-  - **Preprocessing**: `StandardScaler` for numerical data, `pd.get_dummies()` for categorical variables.
-  - **Oversampling**: Applies `SMOTE` only to the training set to prevent data leakage while balancing the non-churn to churn ratio.
-  - **Modeling**: Uses `sklearn` to train models and evaluate them based on Accuracy, Precision, Recall, F1-Score, and ROC-AUC.
+## 🎯 What Does This Project Do?
 
-## 🛠️ Installation & Setup
+1. **Simulates Real-World Data**: It generates a highly realistic synthetic dataset of 10,000 users, including features like `monthly_active_days`, `avg_watch_time_hours`, `subscription_tier`, and `auto_renew_enabled`.
+2. **Handles Imbalanced Data**: Because most users *don't* cancel, churn data is naturally imbalanced. This project uses **SMOTE** (Synthetic Minority Over-sampling Technique) to artificially balance the training data, ensuring the algorithms learn effectively.
+3. **Trains Predictive Models**: It trains and evaluates three distinct algorithms:
+   - **Logistic Regression**: A powerful statistical baseline.
+   - **Decision Tree**: Highly interpretable, allowing us to see *why* users leave.
+   - **Neural Network (MLP)**: A deep learning model that captures complex behavioral patterns.
+4. **Generates Insights**: Automatically produces Confusion Matrices, ROC-AUC curves, and Feature Importance charts to explain its findings.
 
-1. **Clone the repository** (if hosted on GitHub):
-   ```bash
-   git clone <your-repo-url>
-   cd Customer_Churn_Prediction
-   ```
+---
 
-2. **Create a virtual environment** (Recommended):
-   ```bash
-   # Windows
-   python -m venv venv
-   venv\Scripts\activate
+## 🛠️ Quick Start Guide
 
-   # macOS/Linux
-   python3 -m venv venv
-   source venv/bin/activate
-   ```
+Want to run this project on your own machine? Follow these simple steps!
 
-3. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+### Prerequisites
+Make sure you have **Python 3.8+** installed on your system. You can download it from [python.org](https://www.python.org/).
 
-## 🚀 How to Run
+### 1. Clone the Repository
+Open your terminal (Command Prompt, PowerShell, or bash) and run:
+```bash
+git clone <your-repo-url>
+cd Customer_Churn_Prediction
+```
 
-1. **Generate the Dataset**:
-   This will create a `data/` directory and populate it with a `streaming_churn_data.csv` file.
-   ```bash
-   python src/generate_data.py
-   ```
+### 2. Set Up a Virtual Environment (Recommended)
+It's best practice to install dependencies in an isolated environment so it doesn't conflict with other projects on your computer.
 
-2. **Run the Prediction Pipeline**:
-   This script loads the data, trains the models, and outputs all visualizations and metrics to a newly created `results/` folder.
-   ```bash
-   python src/churn_prediction.py
-   ```
+**For Windows:**
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
 
-## 📊 Results & Performance
-The pipeline compares three algorithms. Because customer churn heavily relies on identifying at-risk users, **Recall** is a critical metric (identifying as many true cancellations as possible). 
+**For macOS / Linux:**
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
 
-**Key Insights:**
-- **Auto-renew status**, **Watch Time**, and **Active Days** are historically the strongest predictors of a user's likelihood to cancel.
-- The pipeline provides detailed feature importance and ROC-AUC curves in the `results/` folder after every run.
+### 3. Install Dependencies
+Install all required libraries (like `pandas`, `scikit-learn`, and `seaborn`):
+```bash
+pip install -r requirements.txt
+```
 
-## 📁 Directory Structure
+### 4. Run the Pipeline!
+First, generate the synthetic streaming data. This creates a `data/` folder containing the CSV dataset.
+```bash
+python src/generate_data.py
+```
+
+Next, run the machine learning pipeline. This will process the data, train the models, and evaluate them.
+```bash
+python src/churn_prediction.py
+```
+
+### 5. View the Results
+Once the script finishes, a `results/` folder will appear! Open it to find:
+- `model_comparison.csv`: A spreadsheet summarizing Accuracy, Precision, Recall, F1-Score, and ROC-AUC.
+- `feature_importance.png`: A chart showing the top reasons users cancel (e.g., turning off auto-renew).
+- `roc_curves.png`: A graph comparing the predictive power of all three models.
+- `cm_*.png`: Confusion matrices showing exactly how many predictions were correct vs. incorrect for each model.
+
+---
+
+## 🧠 Key Insights
+If you look at the generated `feature_importance.png`, you'll notice a few trends:
+- **Auto-Renew Disabled**: Users who manually turn off auto-renew are the absolute highest flight risk.
+- **Watch Time & Active Days**: A sudden drop in engagement is a strong indicator of churn.
+- **Support Tickets & Payment Failures**: Friction points highly correlate with user frustration and eventual cancellation.
+
+By using this pipeline, a streaming company could identify these users *before* they cancel and automatically send them a targeted retention offer (e.g., "Get your next month 50% off!").
+
+---
+
+## 📁 Repository Structure
 ```text
 Customer_Churn_Prediction/
 │
 ├── src/
-│   ├── generate_data.py      # Data synthesis script
-│   └── churn_prediction.py   # ML pipeline & evaluation
+│   ├── generate_data.py      # Simulates user profiles and streaming behavior
+│   └── churn_prediction.py   # Cleans data, applies SMOTE, trains models, and plots results
 │
-├── requirements.txt          # Project dependencies
-├── .gitignore                # Git ignore rules
-└── README.md                 # Project documentation
+├── requirements.txt          # Python package dependencies
+├── .gitignore                # Tells Git to ignore temporary files (like data/ and results/)
+└── README.md                 # This guide!
 ```
-*(Note: `data/` and `results/` folders are automatically generated at runtime and ignored by git).*
+
+---
+*Created as part of an ML Internship Project.*
