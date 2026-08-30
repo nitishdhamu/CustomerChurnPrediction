@@ -21,9 +21,9 @@ def load_and_preprocess_data(platforms):
     drops PII, and encodes features. Samples rows to prevent memory overload.
     """
     if not platforms:
-        files = glob.glob('data/*_users_database.csv')
+        files = glob.glob('data/*_users.csv')
     else:
-        files = [f"data/{p}_users_database.csv" for p in platforms]
+        files = [f"data/{p}_users.csv" for p in platforms]
         
     valid_files = [f for f in files if os.path.exists(f)]
     if not valid_files:

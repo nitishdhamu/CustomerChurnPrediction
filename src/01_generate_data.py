@@ -125,7 +125,7 @@ def generate_streaming_database(platform_name, min_users, max_users, start_id, s
     df['churn'] = (churn_prob > threshold).astype(int)
     
     os.makedirs("data", exist_ok=True)
-    out_path = f"data/{platform_name}_users_database.csv"
+    out_path = f"data/{platform_name.lower()}_users.csv"
     print(f"[*] Saving massive database to {out_path}...")
     df.to_csv(out_path, index=False)
     print(f"[+] Successfully generated {num_samples:,} users for {platform_name}!")
