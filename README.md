@@ -70,11 +70,14 @@ python src/churn_prediction.py
 ```
 
 ### 5. Predict Real-World Cancellations (Inference)
-Now that the AI is trained, you can run the inference script. This script simulates taking a brand new list of 120,000 *currently active* customers and feeds them through the trained Artificial Intelligence.
+Now that the AI is trained, you can run the inference script. This script simulates taking a brand new list of 100 *currently active* customers and feeds them through the trained Artificial Intelligence.
 ```bash
 python src/predict_active_customers.py
 ```
-This will output a spreadsheet located at `results/all_customers_churn_predictions.csv` containing every single user, categorized into **High Risk**, **Risk**, and **Low Risk**, alongside their exact mathematical probability of canceling!
+This will output three separate spreadsheets in your `results/` folder so the marketing team can prioritize their efforts:
+- `high_risk_customers.csv` (76% - 100% chance of churning)
+- `medium_risk_customers.csv` (41% - 75% chance of churning)
+- `low_risk_customers.csv` (0% - 40% chance of churning)
 
 ### 6. View the Full Results
 Once the script finishes, a `results/` folder will appear! Open it to find:
