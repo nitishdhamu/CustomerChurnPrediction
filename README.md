@@ -7,19 +7,19 @@
 
 Welcome to the **Streaming Platform Subscription Predictor**! This repository houses an end-to-end Machine Learning pipeline designed to solve one of the biggest problems in the streaming industry (Netflix, Spotify, Hulu, etc.): **Customer Churn**.
 
-By analyzing user engagement metrics, account settings, and friction points, this tool predicts which users are at a high risk of canceling their subscription, allowing businesses to proactively intervene.
+By analyzing user engagement metrics, account settings, and friction points from historical data, this tool predicts which currently active users are at a high risk of canceling their subscription, allowing businesses to proactively intervene.
 
 ---
 
 ## 🎯 What Does This Project Do?
 
-1. **Simulates Real-World Data**: It generates a highly realistic synthetic dataset of 10,000 users, including features like `monthly_active_days`, `avg_watch_time_hours`, `subscription_tier`, and `auto_renew_enabled`.
+1. **Analyzes Historical Data**: It ingests a massive dataset of 100,000 users from the past financial year, including features like `monthly_active_days`, `avg_watch_time_hours`, `subscription_tier`, and `auto_renew_enabled`.
 2. **Handles Imbalanced Data**: Because most users *don't* cancel, churn data is naturally imbalanced. This project uses **SMOTE** (Synthetic Minority Over-sampling Technique) to artificially balance the training data, ensuring the algorithms learn effectively.
 3. **Trains Predictive Models**: It trains and evaluates three distinct algorithms:
    - **Logistic Regression**: A powerful statistical baseline.
    - **Decision Tree**: Highly interpretable, allowing us to see *why* users leave.
    - **Neural Network (MLP)**: A deep learning model that captures complex behavioral patterns.
-4. **Generates Insights**: Automatically produces Confusion Matrices, ROC-AUC curves, and Feature Importance charts to explain its findings.
+4. **Real-World Inference**: It applies the trained Neural Network to a database of 120,000 *current* active subscribers and categorizes their flight risk into High, Medium, and Low tiers for the Marketing Team.
 
 ---
 
@@ -53,24 +53,19 @@ source venv/bin/activate
 ```
 
 ### 3. Install Dependencies
-Install all required libraries (like `pandas`, `scikit-learn`, and `seaborn`):
+Install all required libraries (like `pandas`, `scikit-learn`, and `joblib`):
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Run the Pipeline!
-First, generate the synthetic streaming data. This creates a `data/` folder containing the CSV dataset.
-```bash
-python src/generate_data.py
-```
-
-Next, run the machine learning pipeline. This will process the data, train the models, and evaluate them.
+### 4. Run the Machine Learning Pipeline
+This script loads the historical data (`data/historical_data_fy25.csv`), processes it, trains the Artificial Intelligence, and outputs performance metrics and visualizations.
 ```bash
 python src/churn_prediction.py
 ```
 
 ### 5. Predict Real-World Cancellations (Inference)
-Now that the AI is trained, you can run the inference script. This script simulates taking a brand new list of 100 *currently active* customers and feeds them through the trained Artificial Intelligence.
+Now that the AI is trained, you can run the inference script. This script loads the 120,000 *currently active* customers (`data/current_active_subscribers.csv`) and feeds them through the trained Neural Network.
 ```bash
 python src/predict_active_customers.py
 ```
@@ -80,10 +75,11 @@ This will output three separate spreadsheets in your `results/` folder so the ma
 - `low_risk_customers.csv` (0% - 40% chance of churning)
 
 ### 6. View the Full Results
-Once the script finishes, a `results/` folder will appear! Open it to find:
+Once the training script finishes, a `results/` folder will appear! Open it to find:
 - `model_comparison.csv`: A spreadsheet summarizing Accuracy, Precision, Recall, F1-Score, and ROC-AUC.
-- `feature_importance.csv`: A spreadsheet showing the top reasons users cancel (e.g., turning off auto-renew).
-- `at_risk_customers_list.csv`: The final list of currently active users who are flagged as highly likely to cancel.
+- `feature_importance.png`: A chart showing the top reasons users cancel (e.g., turning off auto-renew).
+- `roc_curves.png`: A graph comparing the predictive power of all three models.
+- `cm_*.png`: Confusion matrices showing exactly how many predictions were correct vs. incorrect for each model.
 
 ---
 
@@ -94,21 +90,6 @@ If you look at the generated `feature_importance.png`, you'll notice a few trend
 - **Support Tickets & Payment Failures**: Friction points highly correlate with user frustration and eventual cancellation.
 
 By using this pipeline, a streaming company could identify these users *before* they cancel and automatically send them a targeted retention offer (e.g., "Get your next month 50% off!").
-
----
-
-## 📁 Repository Structure
-```text
-Customer_Churn_Prediction/
-│
-├── src/
-│   ├── generate_data.py      # Simulates user profiles and streaming behavior
-│   └── churn_prediction.py   # Cleans data, applies SMOTE, trains models, and plots results
-│
-├── requirements.txt          # Python package dependencies
-├── .gitignore                # Tells Git to ignore temporary files (like data/ and results/)
-└── README.md                 # This guide!
-```
 
 ---
 *Created as part of a Data Science Internship Project.*

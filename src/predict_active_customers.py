@@ -8,7 +8,7 @@ def main():
     data_path = os.path.join("data", "current_active_subscribers.csv")
     
     if not os.path.exists(data_path):
-        print(f"[!] Error: {data_path} not found. Please run src/generate_data.py first.")
+        print(f"[!] Error: {data_path} not found. Ensure the CSV is in the data/ folder.")
         return
         
     active_customers_df = pd.read_csv(data_path)

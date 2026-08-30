@@ -77,7 +77,7 @@ def main():
     
     data_path = os.path.join("data", "historical_data_fy25.csv")
     if not os.path.exists(data_path):
-        print(f"[!] Error: Data file not found at {data_path}. Please run generate_data.py first.")
+        print(f"[!] Error: Data file not found at {data_path}. Ensure the CSV is in the data/ folder.")
         return
         
     X_train, X_test, y_train, y_test, feature_names = load_and_preprocess_data(data_path)
