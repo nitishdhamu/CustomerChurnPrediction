@@ -3,48 +3,16 @@ import numpy as np
 import joblib
 import os
 
-def generate_active_customers(num_samples=100, random_state=99):
-    """
-    Generates a list of CURRENTLY ACTIVE customers.
-    Notice that this dataset DOES NOT have a 'churn' column, because we don't know
-    if they are going to churn yet. We need the AI to predict that!
-    """
-    np.random.seed(random_state)
-    
-    customer_id = [f"ACTIVE_USER_{i:04d}" for i in range(1, num_samples + 1)]
-    tenure_months = np.random.randint(1, 73, size=num_samples)
-    
-    tiers = ['Basic', 'Standard', 'Premium']
-    subscription_tier = np.random.choice(tiers, size=num_samples, p=[0.4, 0.4, 0.2])
-    
-    devices = ['Mobile', 'Smart TV', 'Web', 'Multiple']
-    device_type = np.random.choice(devices, size=num_samples, p=[0.35, 0.4, 0.1, 0.15])
-    
-    auto_renew_enabled = np.random.choice(['Yes', 'No'], size=num_samples, p=[0.8, 0.2])
-    
-    monthly_active_days = np.clip(np.random.normal(loc=15, scale=10), 0, 30).astype(int)
-    avg_watch_time_hours = np.clip(np.random.normal(loc=monthly_active_days * 2, scale=20), 0, 200).round(1)
-    
-    payment_failures = np.random.poisson(lam=0.1, size=num_samples)
-    support_tickets = np.random.poisson(lam=0.5, size=num_samples)
-    
-    df = pd.DataFrame({
-        'customer_id': customer_id,
-        'tenure_months': tenure_months,
-        'subscription_tier': subscription_tier,
-        'monthly_active_days': monthly_active_days,
-        'avg_watch_time_hours': avg_watch_time_hours,
-        'device_type': device_type,
-        'auto_renew_enabled': auto_renew_enabled,
-        'payment_failures': payment_failures,
-        'support_tickets': support_tickets
-    })
-    
-    return df
-
 def main():
-    print("[*] Generating a list of 100 currently active customers...")
-    active_customers_df = generate_active_customers(100)
+    print("[*] Loading Current Active Subscribers database...")
+    data_path = os.path.join("data", "current_active_subscribers.csv")
+    
+    if not os.path.exists(data_path):
+        print(f"[!] Error: {data_path} not found. Please run src/generate_data.py first.")
+        return
+        
+    active_customers_df = pd.read_csv(data_path)
+    print(f"[*] Loaded {len(active_customers_df)} active subscribers.")
     
     # 1. Load the saved "Brains" from our training phase
     print("[*] Loading trained Neural Network model, scaler, and feature columns...")
@@ -58,7 +26,6 @@ def main():
 
     # 2. Preprocess the active customers identically to how we preprocessed the training data
     print("[*] Preprocessing active customer data...")
-    customer_ids = active_customers_df['customer_id']
     process_df = active_customers_df.drop('customer_id', axis=1)
     
     # One-Hot Encoding
@@ -82,24 +49,30 @@ def main():
     # Add probabilities back to our readable dataframe
     active_customers_df['churn_probability'] = probabilities.round(4)
     active_customers_df['churn_risk'] = active_customers_df['churn_probability'].apply(
-        lambda p: 'High Risk' if p >= 0.75 else ('Medium Risk' if p >= 0.4 else 'Low Risk')
+        lambda p: 'High Risk' if p >= 0.75 else ('Risk' if p >= 0.4 else 'Low Risk')
     )
     
-    # 4. Filter and save the results for the Marketing Team
-    at_risk_customers = active_customers_df[active_customers_df['churn_risk'] == 'High Risk'].sort_values(by='churn_probability', ascending=False)
+    # 4. Sort all customers by probability and save the complete list
+    all_customers_sorted = active_customers_df.sort_values(by='churn_probability', ascending=False)
     
     os.makedirs("results", exist_ok=True)
-    output_path = "results/at_risk_customers_list.csv"
-    at_risk_customers.to_csv(output_path, index=False)
+    output_path = "results/all_customers_churn_predictions.csv"
+    all_customers_sorted.to_csv(output_path, index=False)
+    
+    # Count how many are in each category
+    risk_counts = all_customers_sorted['churn_risk'].value_counts()
     
     print("\n" + "="*50)
-    print(f"[+] Prediction Complete! Found {len(at_risk_customers)} High-Risk customers.")
-    print(f"[+] The list has been saved to: {output_path}")
+    print(f"[+] Prediction Complete for all {len(active_customers_df):,} customers.")
+    print(f"    - High Risk (>= 75%): {risk_counts.get('High Risk', 0):,}")
+    print(f"    - Risk (40% - 74%):   {risk_counts.get('Risk', 0):,}")
+    print(f"    - Low Risk (< 40%):   {risk_counts.get('Low Risk', 0):,}")
+    print(f"[+] The full list has been saved to: {output_path}")
     print("="*50)
     
-    # Preview top 5
-    print("\nTop 5 Most At-Risk Customers:")
-    print(at_risk_customers[['customer_id', 'churn_probability', 'auto_renew_enabled', 'monthly_active_days', 'avg_watch_time_hours']].head(5).to_string(index=False))
+    # Preview top 5 High Risk and top 5 Low Risk
+    print("\nTop 5 MOST At-Risk Customers:")
+    print(all_customers_sorted[['customer_id', 'churn_probability', 'churn_risk', 'auto_renew_enabled', 'monthly_active_days']].head(5).to_string(index=False))
 
 if __name__ == "__main__":
     main()
