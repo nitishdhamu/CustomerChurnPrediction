@@ -22,9 +22,10 @@ def load_and_preprocess_data(filepath):
     
     print("[*] Encoding categorical features...")
     categorical_cols = ['subscription_tier', 'device_type', 'auto_renew_enabled']
-    categorical_cols = ['subscription_tier', 'device_type', 'auto_renew_enabled', 'favorite_genre', 'support_sentiment']
+    categorical_cols = ['income_bracket', 'subscription_tier', 'billing_cycle', 'auto_renew_enabled', 'customer_acquisition_channel', 'primary_device']
     df = pd.get_dummies(df, columns=categorical_cols, drop_first=True)
     
+    # Save the exact columns used during training so we can match them during prediction
     feature_columns = df.drop('churn', axis=1).columns
     os.makedirs("models", exist_ok=True)
     joblib.dump(feature_columns, "models/feature_columns.pkl")
@@ -38,6 +39,7 @@ def load_and_preprocess_data(filepath):
     print("[*] Scaling numerical features...")
     scaler = StandardScaler()
     num_cols = ['tenure_months', 'monthly_active_days', 'avg_watch_time_hours', 'payment_failures', 'support_tickets']
+    num_cols = ['user_age', 'household_size', 'tenure_months', 'days_since_last_login', 'avg_watch_time_hours', 'content_completion_rate', 'payment_failures', 'support_tickets', 'support_resolution_time_days']
     
     X_train_scaled = X_train.copy()
     X_test_scaled = X_test.copy()
