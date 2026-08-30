@@ -4,8 +4,8 @@ import os
 
 def generate_names_and_emails(num_samples):
     """Generates realistic fake names and completely randomized emails."""
-    first_names = ['James', 'Mary', 'John', 'Patricia', 'Robert', 'Jennifer', 'Michael', 'Linda', 'William', 'Elizabeth', 'David', 'Barbara', 'Richard', 'Susan', 'Joseph', 'Jessica', 'Thomas', 'Sarah', 'Charles', 'Karen', 'Alex', 'Sam', 'Taylor', 'Jordan', 'Casey']
-    last_names = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez', 'Gonzales', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin']
+    first_names = ['James', 'Mary', 'John', 'Patricia', 'Robert', 'Jennifer', 'Michael', 'Linda', 'William', 'Elizabeth', 'David', 'Barbara', 'Richard', 'Susan', 'Joseph', 'Jessica', 'Thomas', 'Sarah', 'Charles', 'Karen', 'Alex', 'Sam', 'Taylor', 'Jordan', 'Casey', 'Christopher', 'Nancy', 'Daniel', 'Lisa', 'Paul', 'Betty', 'Mark', 'Margaret', 'Donald', 'Sandra', 'George', 'Ashley', 'Kenneth', 'Kimberly', 'Steven', 'Emily', 'Edward', 'Donna', 'Brian', 'Michelle', 'Ronald', 'Carol', 'Anthony', 'Amanda', 'Kevin', 'Melissa', 'Jason', 'Deborah', 'Matthew', 'Stephanie', 'Gary', 'Rebecca', 'Timothy', 'Sharon', 'Jose', 'Laura', 'Larry', 'Cynthia', 'Jeffrey', 'Kathleen', 'Frank', 'Amy', 'Scott', 'Shirley', 'Eric', 'Angela', 'Stephen', 'Helen', 'Andrew', 'Anna', 'Raymond', 'Brenda', 'Gregory', 'Pamela', 'Joshua', 'Nicole', 'Jerry', 'Emma', 'Dennis', 'Samantha', 'Walter', 'Katherine', 'Patrick', 'Christine', 'Peter', 'Debra', 'Harold', 'Rachel', 'Douglas', 'Catherine', 'Henry', 'Carolyn', 'Carl', 'Janet', 'Arthur', 'Ruth']
+    last_names = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez', 'Gonzales', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin', 'Lee', 'Perez', 'Thompson', 'White', 'Harris', 'Sanchez', 'Clark', 'Ramirez', 'Lewis', 'Robinson', 'Walker', 'Young', 'Allen', 'King', 'Wright', 'Scott', 'Torres', 'Nguyen', 'Hill', 'Flores', 'Green', 'Adams', 'Nelson', 'Baker', 'Hall', 'Rivera', 'Campbell', 'Mitchell', 'Carter', 'Roberts', 'Gomez', 'Phillips', 'Evans', 'Turner', 'Diaz', 'Parker', 'Cruz', 'Edwards', 'Collins', 'Reyes', 'Stewart', 'Morris', 'Morales', 'Murphy', 'Cook', 'Rogers', 'Gutierrez', 'Ortiz', 'Morgan', 'Cooper', 'Peterson', 'Bailey', 'Reed', 'Kelly', 'Howard', 'Ramos', 'Kim', 'Cox', 'Ward', 'Richardson', 'Watson', 'Brooks', 'Chavez', 'Wood', 'James', 'Bennett', 'Gray', 'Mendoza', 'Ruiz', 'Hughes', 'Price', 'Alvarez', 'Castillo', 'Sanders', 'Patel', 'Myers', 'Long', 'Ross', 'Foster', 'Jimenez']
     domains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'icloud.com']
     
     random_words = ['skater', 'gamer', 'star', 'blue', 'red', 'ninja', 'shadow', 'cool', 'super', 'music', 'coder', 'hero', 'pizza', 'sunny', 'moon', 'coffee', 'tech', 'happy', 'swift', 'magic']
@@ -16,14 +16,11 @@ def generate_names_and_emails(num_samples):
     
     words1 = np.random.choice(random_words, num_samples)
     words2 = np.random.choice(random_words, num_samples)
-    
-    # Generate a unique ID array to guarantee no email collisions
-    unique_ids = np.arange(1, num_samples + 1).astype(str)
-    
+    random_nums = np.random.randint(100, 9999, num_samples).astype(str)
     email_domains = np.random.choice(domains, num_samples)
     
     emails = np.char.add(words1, words2)
-    emails = np.char.add(emails, unique_ids)
+    emails = np.char.add(emails, random_nums)
     emails = np.char.add(np.char.add(emails, '@'), email_domains)
     
     return names, emails
