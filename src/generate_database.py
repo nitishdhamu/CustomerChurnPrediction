@@ -46,7 +46,7 @@ def generate_million_user_database():
     np.random.seed(42)
     Faker.seed(42)
     
-    num_samples = np.random.randint(980000, 1050000)
+    num_samples = np.random.randint(1000000, 1050000)
     print(f"[*] Simulating {num_samples:,} users over the past 5 years...")
     
     customer_id = [f"USER_{i:07d}" for i in range(1, num_samples + 1)]
