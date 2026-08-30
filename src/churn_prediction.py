@@ -22,6 +22,7 @@ def load_and_preprocess_data(filepath):
     
     print("[*] Encoding categorical features...")
     categorical_cols = ['subscription_tier', 'device_type', 'auto_renew_enabled']
+    categorical_cols = ['subscription_tier', 'device_type', 'auto_renew_enabled', 'favorite_genre', 'support_sentiment']
     df = pd.get_dummies(df, columns=categorical_cols, drop_first=True)
     
     feature_columns = df.drop('churn', axis=1).columns
