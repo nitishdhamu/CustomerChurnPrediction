@@ -58,14 +58,21 @@ Install all required libraries (like `pandas`, `scikit-learn`, and `joblib`):
 pip install -r requirements.txt
 ```
 
-### 4. Run the Machine Learning Pipeline
-This script loads the historical data (`data/historical_data_fy25.csv`), processes it, trains the Artificial Intelligence, and outputs performance metrics and visualizations.
+### 4. Generate the Master Database (If Required)
+If you do not have an existing dataset, use this script to generate a massive, authentic master database of over 1 Million users. It mathematically simulates human behavioral noise and completely unique Name/Email PII!
+```bash
+python src/generate_database.py
+```
+*Note: Because this generates a highly detailed 1-Million-row dataset, the resulting CSV file will be over 100MB and is safely ignored by Git to prevent repository bloat.*
+
+### 5. Run the Machine Learning Pipeline
+This script loads the `data/streaming_users_database.csv`, strips out PII (Names/Emails) so the AI doesn't learn useless patterns, and trains the Artificial Intelligence on users with mature tenure.
 ```bash
 python src/churn_prediction.py
 ```
 
-### 5. Predict Real-World Cancellations (Inference)
-Now that the AI is trained, you can run the inference script. This script loads the 120,000 *currently active* customers (`data/current_active_subscribers.csv`) and feeds them through the trained Neural Network.
+### 6. Predict Real-World Cancellations (Inference)
+Now that the AI is trained, run the inference script. It evaluates all currently active users in the database and re-attaches their Names and Emails for the Marketing Team to launch retention campaigns!
 ```bash
 python src/predict_active_customers.py
 ```
