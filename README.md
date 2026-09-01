@@ -85,7 +85,7 @@ This evaluates all currently active users on that platform and outputs three sep
 - `Netflix_medium_risk.csv` (41% - 75% chance of churning)
 - `Netflix_low_risk.csv` (0% - 40% chance of churning)
 
-Additionally, a formatted ASCII table of the **Top 3 Highest Risk Customers** for each platform will be printed directly to your terminal.
+
 
 ---
 *Created as part of a Data Science Internship Project.*
