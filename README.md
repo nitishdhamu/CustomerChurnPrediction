@@ -28,7 +28,7 @@ Make sure you have **Python 3.8+** installed on your system.
 
 ### 1. Clone the Repository
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/nitishdhamu/CustomerChurnPrediction.git
 cd CustomerChurnPrediction
 ```
 
