@@ -13,12 +13,22 @@ def get_interactive_models():
     model_files = sorted(model_files)
     prefixes = [os.path.basename(m).replace('_model.pkl', '') for m in model_files]
     
-    print("\n[*] Available Trained AI Models:")
+    if len(prefixes) == 1:
+        # User requested to "only list the csv files like that"
+        # Map the prefix to the CSV file display
+        csv_files = glob.glob(f"data/{prefixes[0]}*.csv")
+        display_name = os.path.basename(csv_files[0]) if csv_files else f"{prefixes[0]} (CSV missing)"
+        print(f"\n[*] Only one dataset model found: {display_name}. Automatically selecting it...")
+        return prefixes
+
+    print("\n[*] Available Datasets (with Trained Models):")
     for i, p in enumerate(prefixes, 1):
-        print(f"    {i}. {p}")
-    print(f"    {len(prefixes) + 1}. All Models")
+        csv_files = glob.glob(f"data/{p}*.csv")
+        display_name = os.path.basename(csv_files[0]) if csv_files else f"{p} (CSV missing)"
+        print(f"    {i}. {display_name}")
+    print(f"    {len(prefixes) + 1}. All Datasets")
     
-    choice = input("\n[?] Select models to run inference with (e.g., '1', '1,3', or 'All'): ").strip()
+    choice = input("\n[?] Select datasets to run inference with (e.g., '1', '1,3', or 'All'): ").strip()
     
     if choice.lower() == 'all' or choice == str(len(prefixes) + 1):
         return prefixes
@@ -32,7 +42,10 @@ def get_interactive_models():
                 selected_prefixes.append(prefixes[idx])
         else:
             for p in prefixes:
-                if p.lower() == c.lower():
+                # User might type the CSV name or the prefix name
+                csv_files = glob.glob(f"data/{p}*.csv")
+                display_name = os.path.basename(csv_files[0]) if csv_files else p
+                if c.lower() == display_name.lower() or c.lower() == p.lower():
                     selected_prefixes.append(p)
                     
     return selected_prefixes

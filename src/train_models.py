@@ -16,8 +16,12 @@ def get_interactive_files():
     if not files:
         print("[!] No CSV datasets found in the data/ folder.")
         return []
-    
+        
     files = sorted(files)
+    
+    if len(files) == 1:
+        print(f"\n[*] Only one dataset found: {os.path.basename(files[0])}. Automatically selecting it...")
+        return files
     
     print("\n[*] Available Datasets:")
     for i, f in enumerate(files, 1):
