@@ -61,7 +61,7 @@ pip install -r requirements.txt
 ### 4. Generate the Master Database (If Required)
 If you do not have an existing dataset, use this script to generate a massive, authentic master database of over 1 Million users. It mathematically simulates human behavioral noise and completely unique Name/Email PII!
 ```bash
-python src/generate_database.py
+python src/generate_sample_data.py
 ```
 *Note: Because this generates a highly detailed 1-Million-row dataset, the resulting CSV file will be over 100MB and is safely ignored by Git to prevent repository bloat.*
 
