@@ -66,8 +66,6 @@ def load_and_preprocess_data(filepath, prefix):
     train_df = pd.get_dummies(train_df, columns=categorical_cols, drop_first=True)
     
     feature_columns = train_df.drop('churn', axis=1).columns
-    os.makedirs("models", exist_ok=True)
-    joblib.dump(feature_columns, f"models/{prefix}_features.pkl")
     
     X = train_df.drop('churn', axis=1)
     y = train_df['churn']
@@ -85,11 +83,9 @@ def load_and_preprocess_data(filepath, prefix):
     X_train_scaled[num_cols] = scaler.fit_transform(X_train[num_cols])
     X_test_scaled[num_cols] = scaler.transform(X_test[num_cols])
     
-    joblib.dump(scaler, f"models/{prefix}_scaler.pkl")
-    
-    return X_train_scaled, X_test_scaled, y_train, y_test, feature_columns
+    return X_train_scaled, X_test_scaled, y_train, y_test, feature_columns, scaler
 
-def train_and_evaluate(X_train, X_test, y_train, y_test, prefix):
+def train_and_evaluate(X_train, X_test, y_train, y_test, prefix, feature_columns, scaler):
     print(f"[*] Initializing Artificial Intelligence Models for {prefix}...")
     models = {
         'Logistic Regression': LogisticRegression(max_iter=1000, class_weight='balanced'),
@@ -121,8 +117,14 @@ def train_and_evaluate(X_train, X_test, y_train, y_test, prefix):
         })
         
         if name == 'Neural Network':
-            print(f"[*] Saving {name} as the production model for {prefix}...")
-            joblib.dump(model, f"models/{prefix}_model.pkl")
+            print(f"[*] Saving unified {name} bundle (Model + Scaler + Features) for {prefix}...")
+            os.makedirs("models", exist_ok=True)
+            model_bundle = {
+                'model': model,
+                'scaler': scaler,
+                'features': feature_columns
+            }
+            joblib.dump(model_bundle, f"models/{prefix}_model.pkl")
             
     results_df = pd.DataFrame(results)
     os.makedirs("metrics", exist_ok=True)
@@ -144,9 +146,9 @@ def main():
 
     for filepath in files_to_run:
         prefix = os.path.basename(filepath).replace('.csv', '')
-        X_train, X_test, y_train, y_test, _ = load_and_preprocess_data(filepath, prefix)
+        X_train, X_test, y_train, y_test, feature_columns, scaler = load_and_preprocess_data(filepath, prefix)
         if X_train is not None:
-            train_and_evaluate(X_train, X_test, y_train, y_test, prefix)
+            train_and_evaluate(X_train, X_test, y_train, y_test, prefix, feature_columns, scaler)
 
 if __name__ == "__main__":
     main()

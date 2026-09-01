@@ -50,7 +50,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Generate the Master Databases
+### 4. Generate Some Sample Databases (If needed)
 Use this script to mathematically simulate millions of users across different platforms (Netflix, Prime Video, etc.).
 ```bash
 python src/generate_data.py
