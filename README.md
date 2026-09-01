@@ -58,18 +58,18 @@ python src/generate_data.py
 *Note: The generated CSV files will be saved to `data/` and are automatically ignored by Git to prevent repository bloat.*
 
 ### 5. Run the Machine Learning Pipeline (Training)
-This script trains independent Neural Networks for your datasets. Simply run the script to launch the **Interactive CLI Menu**, which will automatically scan your `data/` folder and display the exact CSV file names present.
+This script trains independent Neural Networks for your datasets. Simply run the script to launch the **Interactive CLI Menu**, which will automatically scan your `data/` folder and display the exact CSV file names present. (If only one dataset is present, it will intelligently auto-select it and skip the menu).
 ```bash
 python src/train_models.py
 ```
 *(You can select one, multiple comma-separated numbers, or type 'All')*
 
-When finished, the isolated models will be saved to the `models/` directory, and accuracy summaries will be saved to `metrics/<prefix>_metrics.csv`.
+When finished, the isolated models will be seamlessly bundled (Model + Scaler + Features) into the `models/` directory, and accuracy summaries will be saved to `metrics/<prefix>_metrics.csv`.
 
 ### 6. Predict Real-World Cancellations (Inference)
 Now that the AI is trained, run the inference engine to target at-risk users! 
 
-Just like training, run the script to trigger the **Interactive Menu**:
+Run the script to trigger the **Interactive Menu**. It will dynamically scan your `models/` directory to ensure you only run predictions on datasets with a successfully trained AI model, safely mapping them back to their original CSV names for easy selection. (Like training, it will auto-bypass the menu if only one model exists).
 ```bash
 python src/predict_churn.py
 ```
