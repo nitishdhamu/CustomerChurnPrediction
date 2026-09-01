@@ -51,7 +51,7 @@ pip install -r requirements.txt
 ```
 
 ### 4. Generate Some Sample Databases (If needed)
-Use this script to mathematically simulate millions of users across different platforms (Netflix, Prime, etc.).
+Use this script to launch the interactive generation menu to mathematically simulate millions of users across different platforms (Netflix, Prime, etc.).
 ```bash
 python src/generate_data.py
 ```
