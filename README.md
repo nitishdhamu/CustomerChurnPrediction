@@ -70,7 +70,7 @@ python src/train_models.py
 python src/train_models.py --platforms Netflix Prime_Video
 ```
 
-When finished, the isolated models will be saved to the `models/` directory, and accuracy summaries will be saved to `results/<Platform>_metrics.csv`.
+When finished, the isolated models will be saved to the `models/` directory, and accuracy summaries will be saved to `metrics/<Platform>_metrics.csv`.
 
 ### 6. Predict Real-World Cancellations (Inference)
 Now that the AI is trained, run the inference engine to target at-risk users! 

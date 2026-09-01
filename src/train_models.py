@@ -101,8 +101,8 @@ def train_and_evaluate(X_train, X_test, y_train, y_test, platform_name):
             joblib.dump(model, f"models/{platform_name}_model.pkl")
             
     results_df = pd.DataFrame(results)
-    os.makedirs("results", exist_ok=True)
-    out_csv = f"results/{platform_name}_metrics.csv"
+    os.makedirs("metrics", exist_ok=True)
+    out_csv = f"metrics/{platform_name}_metrics.csv"
     results_df.to_csv(out_csv, index=False)
     print(f"[*] Training Complete! Results saved to {out_csv}")
     print(results_df.to_string(index=False))
@@ -113,7 +113,7 @@ def main():
     parser.add_argument('--platforms', nargs='*', help="Specify which platforms to train on (e.g., --platforms Netflix Prime_Video). Leave blank to train on all independently.")
     args = parser.parse_args()
 
-    os.makedirs("results", exist_ok=True)
+    os.makedirs("metrics", exist_ok=True)
     
     if not args.platforms:
         files = glob.glob('data/*_dataset.csv')
