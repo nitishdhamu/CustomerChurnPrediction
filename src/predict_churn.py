@@ -13,7 +13,7 @@ def predict_for_platform(filepath, platform_name):
     feature_path = f"models/{platform_name}_feature_columns.pkl"
     
     if not (os.path.exists(model_path) and os.path.exists(scaler_path) and os.path.exists(feature_path)):
-        print(f"[!] Error: AI models for {platform_name} not found! Please run churn_prediction.py first.")
+        print(f"[!] Error: AI models for {platform_name} not found! Please run train_models.py first.")
         return
         
     model = joblib.load(model_path)
