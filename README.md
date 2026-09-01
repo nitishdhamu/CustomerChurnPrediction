@@ -10,7 +10,7 @@ By analyzing user engagement metrics, account settings, and friction points from
 
 ---
 
-## 🚀 What Does This Project Do?
+## ⚙️ What Does This Project Do?
 
 1. **Generates Synthetic Data**: It generates massive, hyper-realistic databases mimicking popular streaming services (Netflix, Prime, AppleTV, JioHotstar) with millions of unique users.
 2. **Trains Predictive Models**: It isolates data per platform, drops PII (so the AI learns behavior, not names), and trains three distinct algorithms:
