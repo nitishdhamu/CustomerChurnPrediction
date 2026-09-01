@@ -15,39 +15,26 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-def load_and_preprocess_data(platforms):
+def load_and_preprocess_data(filepath, platform_name):
     """
-    Loads master databases, concatenates them, filters for mature accounts, 
+    Loads a specific master database, filters for mature accounts, 
     drops PII, and encodes features. Samples rows to prevent memory overload.
     """
-    if not platforms:
-        files = glob.glob('data/*_users_database.csv')
-    else:
-        files = [f"data/{p}_users_database.csv" for p in platforms]
-        
-    valid_files = [f for f in files if os.path.exists(f)]
-    if not valid_files:
-        print("[!] Error: No valid database files found for the requested platforms.")
-        print(f"    Looked for: {files}")
-        return None, None, None, None, None
-        
-    print(f"[*] Found {len(valid_files)} databases to learn from: {valid_files}")
+    print(f"\n[*] =========================================")
+    print(f"[*] Processing data for platform: {platform_name}")
+    print(f"[*] =========================================")
     
-    dfs = []
-    for f in valid_files:
-        print(f"[*] Loading {f}...")
-        dfs.append(pd.read_csv(f))
-        
-    df = pd.concat(dfs, ignore_index=True)
-    print(f"[*] Total users across selected platforms: {len(df):,}")
+    print(f"[*] Loading {filepath}...")
+    df = pd.read_csv(filepath)
+    print(f"[*] Total users for {platform_name}: {len(df):,}")
     
     # BUSINESS LOGIC: We only train on users who have been around for more than 6 months 
     train_df = df[df['tenure_months'] > 6].copy()
     print(f"[*] Filtered to {len(train_df):,} mature users (tenure > 6 months) for AI training.")
     
-    if len(train_df) > 800000:
-        print("[*] Sampling 800,000 users for efficient model training...")
-        train_df = train_df.sample(n=800000, random_state=42)
+    if len(train_df) > 500000:
+        print("[*] Sampling 500,000 users for efficient model training...")
+        train_df = train_df.sample(n=500000, random_state=42)
     
     # DROP PII (Names, Emails, IDs)
     train_df = train_df.drop(['customer_id', 'name', 'email'], axis=1)
@@ -58,7 +45,7 @@ def load_and_preprocess_data(platforms):
     
     feature_columns = train_df.drop('churn', axis=1).columns
     os.makedirs("models", exist_ok=True)
-    joblib.dump(feature_columns, "models/feature_columns.pkl")
+    joblib.dump(feature_columns, f"models/{platform_name}_feature_columns.pkl")
     
     X = train_df.drop('churn', axis=1)
     y = train_df['churn']
@@ -76,12 +63,12 @@ def load_and_preprocess_data(platforms):
     X_train_scaled[num_cols] = scaler.fit_transform(X_train[num_cols])
     X_test_scaled[num_cols] = scaler.transform(X_test[num_cols])
     
-    joblib.dump(scaler, "models/scaler.pkl")
+    joblib.dump(scaler, f"models/{platform_name}_scaler.pkl")
     
     return X_train_scaled, X_test_scaled, y_train, y_test, feature_columns
 
-def train_and_evaluate(X_train, X_test, y_train, y_test):
-    print("\n[*] Initializing Artificial Intelligence Models...")
+def train_and_evaluate(X_train, X_test, y_train, y_test, platform_name):
+    print(f"[*] Initializing Artificial Intelligence Models for {platform_name}...")
     models = {
         'Logistic Regression': LogisticRegression(max_iter=1000, class_weight='balanced'),
         'Decision Tree': DecisionTreeClassifier(max_depth=7, class_weight='balanced'),
@@ -112,25 +99,39 @@ def train_and_evaluate(X_train, X_test, y_train, y_test):
         })
         
         if name == 'Neural Network':
-            print(f"[*] Saving {name} as the production model...")
-            joblib.dump(model, "models/best_model_nn.pkl")
+            print(f"[*] Saving {name} as the production model for {platform_name}...")
+            joblib.dump(model, f"models/{platform_name}_best_model_nn.pkl")
             
     results_df = pd.DataFrame(results)
     os.makedirs("results", exist_ok=True)
-    results_df.to_csv("results/model_comparison.csv", index=False)
-    print("\n[*] Training Complete! Results saved to results/model_comparison.csv")
+    out_csv = f"results/{platform_name}_model_comparison.csv"
+    results_df.to_csv(out_csv, index=False)
+    print(f"[*] Training Complete! Results saved to {out_csv}")
     print(results_df.to_string(index=False))
+    print("\n")
 
 def main():
     parser = argparse.ArgumentParser(description="Train Churn Prediction Model on streaming data")
-    parser.add_argument('--platforms', nargs='*', help="Specify which platforms to train on (e.g., --platforms Netflix Prime_Video). Leave blank to train on all.")
+    parser.add_argument('--platforms', nargs='*', help="Specify which platforms to train on (e.g., --platforms Netflix Prime_Video). Leave blank to train on all independently.")
     args = parser.parse_args()
 
     os.makedirs("results", exist_ok=True)
     
-    X_train, X_test, y_train, y_test, feature_names = load_and_preprocess_data(args.platforms)
-    if X_train is not None:
-        train_and_evaluate(X_train, X_test, y_train, y_test)
+    if not args.platforms:
+        files = glob.glob('data/*_users_database.csv')
+    else:
+        files = [f"data/{p}_users_database.csv" for p in args.platforms]
+        
+    valid_files = [f for f in files if os.path.exists(f)]
+    if not valid_files:
+        print("[!] Error: No valid database files found for the requested platforms.")
+        return
+
+    for filepath in valid_files:
+        platform_name = os.path.basename(filepath).replace('_users_database.csv', '')
+        X_train, X_test, y_train, y_test, _ = load_and_preprocess_data(filepath, platform_name)
+        if X_train is not None:
+            train_and_evaluate(X_train, X_test, y_train, y_test, platform_name)
 
 if __name__ == "__main__":
     main()
